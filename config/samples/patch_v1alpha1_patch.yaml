@@ -3,5 +3,16 @@ kind: Patch
 metadata:
   name: patch-sample
 spec:
-  # Add fields here
-  foo: bar
+  patches:
+    - target:
+        group: core
+        version: v1
+        kind: ConfigMap
+        name: hello
+        namespace: hello
+      applyIf:
+        - jsonPath: '{.spec}'
+          regex: '.*'
+      strategy: json
+      patch: |
+        hello: world

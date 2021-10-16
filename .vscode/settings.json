@@ -19,6 +19,7 @@
     "kustomization",
     "kustomize",
     "kustomizeconfig",
+    "metav",
     "null",
     "objref",
     "oidc",
@@ -29,6 +30,8 @@
     "readyz",
     "risser",
     "sigs",
+    "subquestion",
+    "subquestions",
     "subresources",
     "webhookcainjection"
   ],

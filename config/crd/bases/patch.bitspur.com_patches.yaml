@@ -34,12 +34,82 @@ spec:
           metadata:
             type: object
           spec:
-            description: PatchSpec defines the desired state of Patch
+            description: the desired state of the patch
             properties:
-              foo:
-                description: Foo is an example field of Patch. Edit patch_types.go
-                  to remove/update
-                type: string
+              patches:
+                description: a list of patches to be applied in order
+                items:
+                  description: you can read more about kubernetes patches at the following
+                    link https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch
+                  properties:
+                    applyIf:
+                      description: apply patch if criteria met
+                      items:
+                        properties:
+                          jsonPath:
+                            description: the json patch to check the criteria against
+                            type: string
+                          regex:
+                            description: an extended grep compatible regular expression
+                            type: string
+                          target:
+                            description: the target to check criteria against. if
+                              no target specified, the target being patched will be
+                              used
+                            properties:
+                              apiVersion:
+                                type: string
+                              group:
+                                type: string
+                              kind:
+                                type: string
+                              name:
+                                type: string
+                              namespace:
+                                type: string
+                              version:
+                                type: string
+                            required:
+                            - name
+                            type: object
+                        type: object
+                      type: array
+                    patch:
+                      description: the patch to apply
+                      type: string
+                    target:
+                      description: the resource to patch
+                      properties:
+                        apiVersion:
+                          type: string
+                        group:
+                          type: string
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                        namespace:
+                          type: string
+                        version:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type:
+                      description: you can read more about the patch types at the
+                        following link https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#use-a-json-merge-patch-to-update-a-deployment
+                      type: string
+                    waitForResource:
+                      description: wait for the resource to exist
+                      type: boolean
+                    waitForTimeout:
+                      description: wait for time in milliseconds before applying patch
+                      type: integer
+                  required:
+                  - patch
+                  - target
+                  type: object
+                type: array
             type: object
           status:
             description: PatchStatus defines the observed state of Patch
