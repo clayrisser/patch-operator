@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 00:13:45
+ * Last Modified: 17-10-2021 00:45:33
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -26,7 +26,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -77,11 +76,18 @@ func (r *PatchReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		return ctrl.Result{}, err
 	}
 
-	fmt.Print(patch)
-	return ctrl.Result{}, nil
+	if patchUtil.FinalizeProbe(patch) {
+		return patchUtil.Finalize(patch)
+	}
+
+	if patchUtil.InitializeProbe(patch) {
+		return patchUtil.Initialize(patch)
+	}
+
+	return patchUtil.Patch(patch)
 }
 
-func filterPlugPredicate() predicate.Predicate {
+func filterPatchPredicate() predicate.Predicate {
 	return predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			return e.ObjectNew.GetGeneration() > e.ObjectOld.GetGeneration()
@@ -97,7 +103,7 @@ func (r *PatchReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&patchv1alpha1.Patch{}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
-		WithEventFilter(filterPlugPredicate()).
+		WithEventFilter(filterPatchPredicate()).
 		Complete(r)
 
 }

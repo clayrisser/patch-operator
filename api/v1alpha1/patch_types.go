@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 16-10-2021 22:50:00
+ * Last Modified: 17-10-2021 00:18:42
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -27,6 +27,8 @@ package v1alpha1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+const PatchFinalizer = "patch.bitspur.com/finalizer"
 
 type PatchType string
 

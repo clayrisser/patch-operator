@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:37:55
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 00:13:32
+ * Last Modified: 17-10-2021 00:49:04
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -37,6 +37,7 @@ import (
 	"k8s.io/apiserver/pkg/registry/generic/registry"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -73,6 +74,36 @@ func NewPatchUtil(
 	}
 }
 
+func (u *PatchUtil) InitializeProbe(patch *patchv1alpha1.Patch) bool {
+	return !controllerutil.ContainsFinalizer(patch, patchv1alpha1.PatchFinalizer)
+}
+
+func (u *PatchUtil) Initialize(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+	controllerutil.AddFinalizer(patch, patchv1alpha1.PatchFinalizer)
+	if err := u.update(patch); err != nil {
+		return u.Error(err)
+	}
+	return ctrl.Result{}, nil
+}
+
+func (u *PatchUtil) Patch(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+	return u.UpdateStatusPatched()
+}
+
+func (u *PatchUtil) FinalizeProbe(patch *patchv1alpha1.Patch) bool {
+	return patch.GetDeletionTimestamp() != nil
+}
+
+func (u *PatchUtil) Finalize(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+	if controllerutil.ContainsFinalizer(patch, patchv1alpha1.PatchFinalizer) {
+		controllerutil.RemoveFinalizer(patch, patchv1alpha1.PatchFinalizer)
+		if err := u.update(patch); err != nil {
+			return u.Error(err)
+		}
+	}
+	return ctrl.Result{}, nil
+}
+
 func (u *PatchUtil) Get() (*patchv1alpha1.Patch, error) {
 	client := *u.client
 	ctx := *u.ctx
@@ -81,38 +112,6 @@ func (u *PatchUtil) Get() (*patchv1alpha1.Patch, error) {
 		return nil, err
 	}
 	return patch.DeepCopy(), nil
-}
-
-func (u *PatchUtil) Update(patch *patchv1alpha1.Patch) error {
-	client := *u.client
-	ctx := *u.ctx
-	u.mutex.Lock()
-	if err := client.Update(ctx, patch); err != nil {
-		u.mutex.Unlock()
-		return err
-	}
-	u.mutex.Unlock()
-	return nil
-}
-
-func (u *PatchUtil) UpdateStatus(
-	patch *patchv1alpha1.Patch,
-	exponentialBackoff bool,
-) error {
-	client := *u.client
-	ctx := *u.ctx
-	if !exponentialBackoff ||
-		patch.Status.LastUpdate.IsZero() ||
-		config.StartTime.Unix() > patch.Status.LastUpdate.Unix() {
-		patch.Status.LastUpdate = metav1.Now()
-	}
-	u.mutex.Lock()
-	if err := client.Status().Update(ctx, patch); err != nil {
-		u.mutex.Unlock()
-		return err
-	}
-	u.mutex.Unlock()
-	return nil
 }
 
 func (u *PatchUtil) Error(err error) (ctrl.Result, error) {
@@ -130,7 +129,7 @@ func (u *PatchUtil) Error(err error) (ctrl.Result, error) {
 	)
 	u.log.Error(nil, err.Error())
 	if strings.Index(err.Error(), registry.OptimisticLockErrorMsg) <= -1 {
-		if _, _err := u.UpdateErrorStatus(err); _err != nil {
+		if _err := u.updateErrorStatus(err); _err != nil {
 			if strings.Contains(_err.Error(), registry.OptimisticLockErrorMsg) {
 				return ctrl.Result{
 					Requeue:      true,
@@ -149,7 +148,7 @@ func (u *PatchUtil) Error(err error) (ctrl.Result, error) {
 	}, nil
 }
 
-func (u *PatchUtil) UpdateStatusSimple(
+func (u *PatchUtil) UpdateStatus(
 	phase patchv1alpha1.Phase,
 	patchedCondition StatusCondition,
 ) (ctrl.Result, error) {
@@ -163,30 +162,62 @@ func (u *PatchUtil) UpdateStatusSimple(
 	if patchedCondition != "" {
 		u.setPatchedCondition(patch, patchedCondition, "")
 	}
-	if err := u.UpdateStatus(patch, false); err != nil {
+	if err := u.updateStatus(patch, false); err != nil {
 		return u.Error(err)
 	}
 	return ctrl.Result{}, nil
 }
 
 func (u *PatchUtil) UpdateStatusPatching() (ctrl.Result, error) {
-	return u.UpdateStatusSimple(patchv1alpha1.PendingPhase, PatchingStatusCondition)
+	return u.UpdateStatus(patchv1alpha1.PendingPhase, PatchingStatusCondition)
 }
 
 func (u *PatchUtil) UpdateStatusPatched() (ctrl.Result, error) {
-	return u.UpdateStatusSimple(patchv1alpha1.SucceededPhase, PatchedStatusCondition)
+	return u.UpdateStatus(patchv1alpha1.SucceededPhase, PatchedStatusCondition)
 }
 
-func (u *PatchUtil) UpdateErrorStatus(err error) (ctrl.Result, error) {
+func (u *PatchUtil) updateErrorStatus(err error) error {
 	patch, _err := u.Get()
 	if _err != nil {
-		return ctrl.Result{}, _err
+		return _err
 	}
 	u.setErrorStatus(patch, err)
-	if _err := u.UpdateStatus(patch, true); _err != nil {
-		return ctrl.Result{}, _err
+	if _err := u.updateStatus(patch, true); _err != nil {
+		return _err
 	}
-	return ctrl.Result{}, nil
+	return nil
+}
+
+func (u *PatchUtil) update(patch *patchv1alpha1.Patch) error {
+	client := *u.client
+	ctx := *u.ctx
+	u.mutex.Lock()
+	if err := client.Update(ctx, patch); err != nil {
+		u.mutex.Unlock()
+		return err
+	}
+	u.mutex.Unlock()
+	return nil
+}
+
+func (u *PatchUtil) updateStatus(
+	patch *patchv1alpha1.Patch,
+	exponentialBackoff bool,
+) error {
+	client := *u.client
+	ctx := *u.ctx
+	if !exponentialBackoff ||
+		patch.Status.LastUpdate.IsZero() ||
+		config.StartTime.Unix() > patch.Status.LastUpdate.Unix() {
+		patch.Status.LastUpdate = metav1.Now()
+	}
+	u.mutex.Lock()
+	if err := client.Status().Update(ctx, patch); err != nil {
+		u.mutex.Unlock()
+		return err
+	}
+	u.mutex.Unlock()
+	return nil
 }
 
 func (u *PatchUtil) getPatchedCondition() (*metav1.Condition, error) {
