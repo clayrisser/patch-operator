@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 00:45:33
+ * Last Modified: 17-10-2021 17:20:12
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -80,11 +80,19 @@ func (r *PatchReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		return patchUtil.Finalize(patch)
 	}
 
-	if patchUtil.InitializeProbe(patch) {
-		return patchUtil.Initialize(patch)
+	if patchUtil.InitializeFinalizerProbe(patch) {
+		return patchUtil.InitializeFinalizer(patch)
 	}
 
-	return patchUtil.Patch(patch)
+	if patchUtil.PatchingProbe(patch) {
+		return patchUtil.Patching(patch)
+	}
+
+	if patchUtil.PatchedProbe(patch) {
+		return patchUtil.Patched(patch)
+	}
+
+	return ctrl.Result{}, nil
 }
 
 func filterPatchPredicate() predicate.Predicate {

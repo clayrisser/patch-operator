@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:23:25
  * Author: Clay Risser
  * -----
- * Last Modified: 16-10-2021 23:10:35
+ * Last Modified: 17-10-2021 18:53:14
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -31,12 +31,4 @@ import (
 
 var (
 	decUnstructured = yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-)
-
-type StatusCondition string
-
-const (
-	PatchingStatusCondition StatusCondition = "Patching"
-	PatchedStatusCondition  StatusCondition = "Patched"
-	ErrorStatusCondition    StatusCondition = "Error"
 )

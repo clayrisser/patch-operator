@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 00:18:42
+ * Last Modified: 17-10-2021 16:55:07
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -42,6 +42,9 @@ const (
 type PatchSpec struct {
 	// a list of patches to be applied in order
 	Patches []PatchSpecPatch `json:"patches,omitempty"`
+
+	// image used in the job
+	Image string `json:"image,omitempty"`
 }
 
 // PatchStatus defines the observed state of Patch

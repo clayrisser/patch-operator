@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:37:55
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 00:49:04
+ * Last Modified: 17-10-2021 18:53:20
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -31,6 +31,7 @@ import (
 
 	patchv1alpha1 "gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
 	"gitlab.com/bitspur/community/patch-operator/config"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -74,11 +75,11 @@ func NewPatchUtil(
 	}
 }
 
-func (u *PatchUtil) InitializeProbe(patch *patchv1alpha1.Patch) bool {
+func (u *PatchUtil) InitializeFinalizerProbe(patch *patchv1alpha1.Patch) bool {
 	return !controllerutil.ContainsFinalizer(patch, patchv1alpha1.PatchFinalizer)
 }
 
-func (u *PatchUtil) Initialize(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+func (u *PatchUtil) InitializeFinalizer(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
 	controllerutil.AddFinalizer(patch, patchv1alpha1.PatchFinalizer)
 	if err := u.update(patch); err != nil {
 		return u.Error(err)
@@ -86,7 +87,32 @@ func (u *PatchUtil) Initialize(patch *patchv1alpha1.Patch) (ctrl.Result, error) 
 	return ctrl.Result{}, nil
 }
 
-func (u *PatchUtil) Patch(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+func (u *PatchUtil) PatchingProbe(patch *patchv1alpha1.Patch) bool {
+	return (!u.getConditionStatus(patch, PatchPatching) && !u.getConditionStatus(patch, PatchPatched))
+}
+
+func (u *PatchUtil) Patching(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+	jobUtil := NewJobUtil(patch, u.ctx)
+	jobUtil.Create("echo Hello, world!", &[]v1.EnvVar{})
+	return u.UpdateStatusPatching()
+}
+
+func (u *PatchUtil) PatchedProbe(patch *patchv1alpha1.Patch) bool {
+	return !u.getConditionStatus(patch, PatchPatched)
+}
+
+func (u *PatchUtil) Patched(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+	jobUtil := NewJobUtil(patch, u.ctx)
+	completed, err := jobUtil.Completed()
+	if err != nil {
+		return u.Error(err)
+	}
+	if !completed {
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: config.DefaultRequeueAfter,
+		}, nil
+	}
 	return u.UpdateStatusPatched()
 }
 
@@ -96,6 +122,10 @@ func (u *PatchUtil) FinalizeProbe(patch *patchv1alpha1.Patch) bool {
 
 func (u *PatchUtil) Finalize(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
 	if controllerutil.ContainsFinalizer(patch, patchv1alpha1.PatchFinalizer) {
+		jobUtil := NewJobUtil(patch, u.ctx)
+		if err := jobUtil.Delete(); err != nil {
+			return u.Error(err)
+		}
 		controllerutil.RemoveFinalizer(patch, patchv1alpha1.PatchFinalizer)
 		if err := u.update(patch); err != nil {
 			return u.Error(err)
@@ -150,7 +180,7 @@ func (u *PatchUtil) Error(err error) (ctrl.Result, error) {
 
 func (u *PatchUtil) UpdateStatus(
 	phase patchv1alpha1.Phase,
-	patchedCondition StatusCondition,
+	patchConditionType *PatchConditionType,
 ) (ctrl.Result, error) {
 	patch, err := u.Get()
 	if err != nil {
@@ -159,21 +189,23 @@ func (u *PatchUtil) UpdateStatus(
 	if phase != "" {
 		u.setPhaseStatus(patch, phase)
 	}
-	if patchedCondition != "" {
-		u.setPatchedCondition(patch, patchedCondition, "")
+	if patchConditionType != nil {
+		u.setCondition(patch, *patchConditionType, true, "")
 	}
 	if err := u.updateStatus(patch, false); err != nil {
 		return u.Error(err)
 	}
-	return ctrl.Result{}, nil
+	return ctrl.Result{Requeue: true}, nil
 }
 
 func (u *PatchUtil) UpdateStatusPatching() (ctrl.Result, error) {
-	return u.UpdateStatus(patchv1alpha1.PendingPhase, PatchingStatusCondition)
+	patchConditionType := PatchPatching
+	return u.UpdateStatus(patchv1alpha1.PendingPhase, &patchConditionType)
 }
 
 func (u *PatchUtil) UpdateStatusPatched() (ctrl.Result, error) {
-	return u.UpdateStatus(patchv1alpha1.SucceededPhase, PatchedStatusCondition)
+	patchConditionType := PatchPatched
+	return u.UpdateStatus(patchv1alpha1.SucceededPhase, &patchConditionType)
 }
 
 func (u *PatchUtil) updateErrorStatus(err error) error {
@@ -220,40 +252,59 @@ func (u *PatchUtil) updateStatus(
 	return nil
 }
 
-func (u *PatchUtil) getPatchedCondition() (*metav1.Condition, error) {
-	patch, err := u.Get()
-	if err != nil {
-		return nil, err
+func (u *PatchUtil) getConditionStatus(patch *patchv1alpha1.Patch, patchConditionType PatchConditionType) bool {
+	condition := u.getCondition(patch, patchConditionType)
+	if condition == nil {
+		return false
 	}
-	condition := meta.FindStatusCondition(patch.Status.Conditions, "patched")
-	return condition, nil
+	if condition.Status == "True" {
+		return true
+	}
+	return false
 }
 
-func (u *PatchUtil) setPatchedCondition(
+func (u *PatchUtil) getCondition(patch *patchv1alpha1.Patch, patchConditionType PatchConditionType) *metav1.Condition {
+	return meta.FindStatusCondition(patch.Status.Conditions, string(patchConditionType))
+}
+
+func (u *PatchUtil) setCondition(
 	patch *patchv1alpha1.Patch,
-	statusCondition StatusCondition,
+	patchConditionType PatchConditionType,
+	status bool,
 	message string,
 ) {
 	if message == "" {
-		if statusCondition == PatchedStatusCondition {
-			message = "patched"
-		} else if statusCondition == PatchingStatusCondition {
-			message = "patching"
+		if patchConditionType == PatchPatched {
+			message = "patch patched"
+		} else if patchConditionType == PatchPatching {
+			message = "patch patching"
 		} else {
-			message = "unknown error"
+			message = "patch failed"
 		}
 	}
 	condition := metav1.Condition{
 		Message:            message,
 		ObservedGeneration: patch.Generation,
-		Reason:             string(statusCondition),
 		Status:             "False",
-		Type:               "patched",
+		Reason:             string(patchConditionType),
+		Type:               string(patchConditionType),
 	}
-	if statusCondition == PatchedStatusCondition {
+	if status {
 		condition.Status = "True"
 	}
+	u.removeExceptCondition(patch, patchConditionType)
 	meta.SetStatusCondition(&patch.Status.Conditions, condition)
+}
+
+func (u *PatchUtil) removeExceptCondition(
+	patch *patchv1alpha1.Patch,
+	patchConditionType PatchConditionType,
+) {
+	for _, conditionType := range patchConditionTypes {
+		if conditionType != patchConditionType {
+			meta.RemoveStatusCondition(&patch.Status.Conditions, string(conditionType))
+		}
+	}
 }
 
 func (u *PatchUtil) setPhaseStatus(
@@ -268,11 +319,19 @@ func (u *PatchUtil) setPhaseStatus(
 
 func (u *PatchUtil) setErrorStatus(patch *patchv1alpha1.Patch, err error) {
 	message := err.Error()
-	if _, _err := u.getPatchedCondition(); _err != nil {
-		u.setPatchedCondition(patch, ErrorStatusCondition, message)
-	}
+	u.setCondition(patch, PatchFailed, true, message)
 	patch.Status.Phase = patchv1alpha1.FailedPhase
 	patch.Status.Message = message
 }
 
 var GlobalPatchMutex *sync.Mutex = &sync.Mutex{}
+
+type PatchConditionType string
+
+const (
+	PatchFailed   PatchConditionType = "Failed"
+	PatchPatched  PatchConditionType = "Patched"
+	PatchPatching PatchConditionType = "Patching"
+)
+
+var patchConditionTypes []PatchConditionType = []PatchConditionType{PatchFailed, PatchPatched, PatchPatching}

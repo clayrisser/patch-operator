@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:44:20
  * Author: Clay Risser
  * -----
- * Last Modified: 16-10-2021 22:44:42
+ * Last Modified: 17-10-2021 17:43:22
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -36,3 +36,5 @@ var MaxRequeueDuration time.Duration = time.Duration(float64(time.Hour.Nanosecon
 var StartTime metav1.Time = metav1.Now()
 
 var DebugPatchEndpoint = os.Getenv("DEBUG_PATCH_ENDPOINT")
+
+var DefaultRequeueAfter = time.Duration(time.Second * 15)

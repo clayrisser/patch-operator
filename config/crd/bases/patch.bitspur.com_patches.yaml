@@ -36,6 +36,9 @@ spec:
           spec:
             description: the desired state of the patch
             properties:
+              image:
+                description: image used in the job
+                type: string
               patches:
                 description: a list of patches to be applied in order
                 items:
