@@ -3,7 +3,7 @@
 # File Created: 16-10-2021 13:14:09
 # Author: Clay Risser
 # -----
-# Last Modified: 16-10-2021 13:28:32
+# Last Modified: 16-10-2021 22:08:53
 # Modified By: Clay Risser
 # -----
 # BitSpur Inc (c) Copyright 2021
@@ -28,14 +28,15 @@ ifneq (,$(MKPM))
 
 .DEFAULT_GOAL := build
 
-.PHONY: of-%
-of-%:
-	@$(MAKE) -s -f ./operator-framework.mk $(subst of-,,$@)
-
-.PHONY: build docker-build generate manifests
+.PHONY: of-% build docker-build generate manifests install uninstall start
 build: of-build
 docker-build: of-docker-build
+start: of-run
 generate: of-generate
+install: of-install
 manifests: generate of-manifests
+uninstall: of-uninstall
+of-%:
+	@$(MAKE) -s -f ./operator-framework.mk $(subst of-,,$@)
 
 endif

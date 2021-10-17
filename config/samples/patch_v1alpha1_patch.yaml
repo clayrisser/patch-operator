@@ -13,6 +13,6 @@ spec:
       applyIf:
         - jsonPath: '{.spec}'
           regex: '.*'
-      strategy: json
+      type: json
       patch: |
         hello: world

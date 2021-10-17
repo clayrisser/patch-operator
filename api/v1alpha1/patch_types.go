@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 16-10-2021 14:12:55
+ * Last Modified: 16-10-2021 22:50:00
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -44,8 +44,17 @@ type PatchSpec struct {
 
 // PatchStatus defines the observed state of Patch
 type PatchStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Conditions represent the latest available observations of an object's state
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
+	// integration plug phase (Pending, Succeeded, Failed, Unknown)
+	Phase Phase `json:"phase,omitempty"`
+
+	// last update time
+	LastUpdate metav1.Time `json:"lastUpdate,omitempty"`
+
+	// status message
+	Message string `json:"message,omitempty"`
 }
 
 //+kubebuilder:object:root=true

@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 13:47:31
  * Author: Clay Risser
  * -----
- * Last Modified: 16-10-2021 13:51:24
+ * Last Modified: 16-10-2021 22:49:56
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -38,3 +38,21 @@ type Target struct {
 
 	Namespace string `json:"namespace,omitempty"`
 }
+
+type NamespacedName struct {
+	// name
+	Name string `json:"name"`
+
+	// namespace
+	Namespace string `json:"namespace,omitempty"`
+}
+
+type Phase string
+
+const (
+	FailedPhase    Phase = "Failed"
+	PendingPhase   Phase = "Pending"
+	ReadyPhase     Phase = "Ready"
+	SucceededPhase Phase = "Succeeded"
+	UnknownPhase   Phase = "Unknown"
+)
