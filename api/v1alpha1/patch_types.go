@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 19:18:21
+ * Last Modified: 17-10-2021 22:35:35
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -113,7 +113,7 @@ type PatchSpecPatch struct {
 type PatchSpecPatchApplyIf struct {
 	// the target to check criteria against. if no target specified, the target
 	// being patched will be used
-	Target Target `json:"target,omitempty"`
+	Target *Target `json:"target,omitempty"`
 
 	// the json patch to check the criteria against
 	JsonPath string `json:"jsonPath,omitempty"`

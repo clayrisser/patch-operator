@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:37:55
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 19:59:39
+ * Last Modified: 17-10-2021 22:32:25
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -99,7 +99,9 @@ func (u *PatchUtil) Patching(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
 		if patchItem.Id == "" {
 			patchId = fmt.Sprint(i)
 		}
-		scriptUtil.AppendPatch(patchId, &patchItem)
+		if err := scriptUtil.AppendPatch(patchId, &patchItem); err != nil {
+			return u.Error(err)
+		}
 	}
 	jobUtil := NewJobUtil(patch, u.ctx)
 	jobUtil.Create(scriptUtil.Get(), &[]v1.EnvVar{})

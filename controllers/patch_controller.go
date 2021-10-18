@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 17:20:12
+ * Last Modified: 17-10-2021 22:41:35
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -98,7 +98,8 @@ func (r *PatchReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 func filterPatchPredicate() predicate.Predicate {
 	return predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			return e.ObjectNew.GetGeneration() > e.ObjectOld.GetGeneration()
+			// return e.ObjectNew.GetGeneration() > e.ObjectOld.GetGeneration()
+			return true
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
 			return !e.DeleteStateUnknown

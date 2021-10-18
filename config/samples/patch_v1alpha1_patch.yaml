@@ -11,8 +11,8 @@ spec:
         name: hello
       waitForTimeout: 5
       applyIf:
-        - jsonPath: '{.spec}'
-          regex: '.*'
+        - jsonPath: '.data'
+          regex: 'howdy'
       patch: |-
         data:
           howdy: texas
@@ -23,8 +23,8 @@ spec:
         name: hello
       waitForTimeout: 5
       applyIf:
-        - jsonPath: '{.spec}'
-          regex: '.*'
+        - jsonPath: '.data'
+          regex: 'fail'
       type: script
       patch: |-
         echo Hello, world!
@@ -35,7 +35,7 @@ spec:
     #     name: hello
     #   waitForTimeout: 5
     #   applyIf:
-    #     - jsonPath: '{.spec}'
+    #     - jsonPath: '.data'
     #       regex: '.*'
     #   type: json
     #   patch: |-
@@ -49,8 +49,8 @@ spec:
         name: hello
       waitForTimeout: 5
       applyIf:
-        - jsonPath: '{.spec}'
-          regex: '.*'
+        - jsonPath: '.hello'
+          regex: 'hello'
       type: merge
       patch: |-
         data:
