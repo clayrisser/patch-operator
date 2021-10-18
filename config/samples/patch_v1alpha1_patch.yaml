@@ -4,15 +4,30 @@ metadata:
   name: patch-sample
 spec:
   patches:
-    - target:
-        group: core
+    - id: example
+      target:
         version: v1
         kind: ConfigMap
         name: hello
-        namespace: hello
       applyIf:
         - jsonPath: '{.spec}'
           regex: '.*'
-      type: json
-      patch: |
-        hello: world
+
+      patch: |-
+        data:
+          howdy: texas
+
+      # type: script
+      # patch: |-
+      #   echo Hello, world!
+
+      # type: json
+      # patch: |-
+      #   - op: add
+      #     path: /data/hello
+      #     value: world
+
+      # type: merge
+      # patch: |-
+      #   data:
+      #     hello: world

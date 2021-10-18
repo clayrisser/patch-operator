@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:37:55
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 18:53:20
+ * Last Modified: 17-10-2021 19:59:39
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -26,6 +26,7 @@ package util
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 
@@ -92,8 +93,16 @@ func (u *PatchUtil) PatchingProbe(patch *patchv1alpha1.Patch) bool {
 }
 
 func (u *PatchUtil) Patching(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+	scriptUtil := NewScriptUtil(patch)
+	for i, patchItem := range patch.Spec.Patches {
+		patchId := patchItem.Id
+		if patchItem.Id == "" {
+			patchId = fmt.Sprint(i)
+		}
+		scriptUtil.AppendPatch(patchId, &patchItem)
+	}
 	jobUtil := NewJobUtil(patch, u.ctx)
-	jobUtil.Create("echo Hello, world!", &[]v1.EnvVar{})
+	jobUtil.Create(scriptUtil.Get(), &[]v1.EnvVar{})
 	return u.UpdateStatusPatching()
 }
 

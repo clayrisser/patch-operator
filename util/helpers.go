@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:40:48
  * Author: Clay Risser
  * -----
- * Last Modified: 16-10-2021 22:45:23
+ * Last Modified: 17-10-2021 19:49:58
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -46,16 +46,6 @@ func Default(value string, defaultValue string) string {
 	return value
 }
 
-func EnsureNamespacedName(
-	partialNamespacedName *patchv1alpha1.NamespacedName,
-	defaultNamespace string,
-) types.NamespacedName {
-	return types.NamespacedName{
-		Name:      partialNamespacedName.Name,
-		Namespace: Default(partialNamespacedName.Namespace, defaultNamespace),
-	}
-}
-
 func GetOperatorNamespace() string {
 	operatorNamespace := os.Getenv("POD_NAMESPACE")
 	if operatorNamespace == "" {
@@ -95,4 +85,14 @@ func JsonToHashMap(body []byte) (map[string]string, error) {
 		hashMap[key] = fmt.Sprintf("%v", value)
 	}
 	return hashMap, nil
+}
+
+func EnsureNamespacedName(
+	partialNamespacedName *patchv1alpha1.NamespacedName,
+	defaultNamespace string,
+) types.NamespacedName {
+	return types.NamespacedName{
+		Name:      partialNamespacedName.Name,
+		Namespace: Default(partialNamespacedName.Namespace, defaultNamespace),
+	}
 }

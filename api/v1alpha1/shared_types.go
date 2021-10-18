@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 13:47:31
  * Author: Clay Risser
  * -----
- * Last Modified: 16-10-2021 22:49:56
+ * Last Modified: 17-10-2021 19:47:29
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -26,17 +26,17 @@ package v1alpha1
 
 // Target locates a resource
 type Target struct {
+	Kind string `json:"kind"`
+
+	Name string `json:"name"`
+
+	Namespace string `json:"namespace,omitempty"`
+
 	Group string `json:"group,omitempty"`
 
 	Version string `json:"version,omitempty"`
 
 	ApiVersion string `json:"apiVersion,omitempty"`
-
-	Kind string `json:"kind,omitempty"`
-
-	Name string `json:"name"`
-
-	Namespace string `json:"namespace,omitempty"`
 }
 
 type NamespacedName struct {

@@ -73,10 +73,14 @@ spec:
                               version:
                                 type: string
                             required:
+                            - kind
                             - name
                             type: object
                         type: object
                       type: array
+                    id:
+                      description: optional patch id for reference
+                      type: string
                     patch:
                       description: the patch to apply
                       type: string
@@ -96,6 +100,7 @@ spec:
                         version:
                           type: string
                       required:
+                      - kind
                       - name
                       type: object
                     type:

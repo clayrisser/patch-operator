@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 16:35:30
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 18:54:18
+ * Last Modified: 17-10-2021 19:01:20
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -123,7 +123,7 @@ func (j *JobUtil) Completed() (bool, error) {
 		}
 		return false, err
 	}
-	jobComplete := FindJobStatusCondition(job.Status.Conditions, batchv1.JobComplete)
+	jobComplete := j.findJobStatusCondition(job.Status.Conditions, batchv1.JobComplete)
 	if jobComplete == nil {
 		return false, nil
 	}
@@ -133,7 +133,7 @@ func (j *JobUtil) Completed() (bool, error) {
 	return true, nil
 }
 
-func FindJobStatusCondition(conditions []batchv1.JobCondition, conditionType batchv1.JobConditionType) *batchv1.JobCondition {
+func (j *JobUtil) findJobStatusCondition(conditions []batchv1.JobCondition, conditionType batchv1.JobConditionType) *batchv1.JobCondition {
 	for i := range conditions {
 		if conditions[i].Type == conditionType {
 			return &conditions[i]

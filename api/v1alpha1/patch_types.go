@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 16:55:07
+ * Last Modified: 17-10-2021 19:18:21
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -35,6 +35,7 @@ type PatchType string
 const (
 	JsonPatchType      PatchType = "json"
 	MergePatchType     PatchType = "merge"
+	ScriptPatchType    PatchType = "script"
 	StrategicPatchType PatchType = "strategic"
 )
 
@@ -89,6 +90,9 @@ type PatchSpecPatch struct {
 	// the patch to apply
 	Patch string `json:"patch"`
 
+	// the resource to patch
+	Target Target `json:"target"`
+
 	// you can read more about the patch types at the following link
 	// https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#use-a-json-merge-patch-to-update-a-deployment
 	Type PatchType `json:"type,omitempty"`
@@ -102,8 +106,8 @@ type PatchSpecPatch struct {
 	// apply patch if criteria met
 	ApplyIf []PatchSpecPatchApplyIf `json:"applyIf,omitempty"`
 
-	// the resource to patch
-	Target Target `json:"target"`
+	// optional patch id for reference
+	Id string `json:"id,omitempty"`
 }
 
 type PatchSpecPatchApplyIf struct {
