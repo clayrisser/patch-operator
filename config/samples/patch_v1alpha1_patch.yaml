@@ -4,30 +4,54 @@ metadata:
   name: patch-sample
 spec:
   patches:
-    - id: example
+    - id: strategic
       target:
         version: v1
         kind: ConfigMap
         name: hello
+      waitForTimeout: 5
       applyIf:
         - jsonPath: '{.spec}'
           regex: '.*'
-
       patch: |-
         data:
           howdy: texas
-
-      # type: script
-      # patch: |-
-      #   echo Hello, world!
-
-      # type: json
-      # patch: |-
-      #   - op: add
-      #     path: /data/hello
-      #     value: world
-
-      # type: merge
-      # patch: |-
-      #   data:
-      #     hello: world
+    - id: script
+      target:
+        version: v1
+        kind: ConfigMap
+        name: hello
+      waitForTimeout: 5
+      applyIf:
+        - jsonPath: '{.spec}'
+          regex: '.*'
+      type: script
+      patch: |-
+        echo Hello, world!
+    # - id: json
+    #   target:
+    #     version: v1
+    #     kind: ConfigMap
+    #     name: hello
+    #   waitForTimeout: 5
+    #   applyIf:
+    #     - jsonPath: '{.spec}'
+    #       regex: '.*'
+    #   type: json
+    #   patch: |-
+    #     - op: add
+    #       path: /data/hello
+    #       value: world
+    - id: merge
+      target:
+        version: v1
+        kind: ConfigMap
+        name: hello
+      waitForTimeout: 5
+      applyIf:
+        - jsonPath: '{.spec}'
+          regex: '.*'
+      type: merge
+      patch: |-
+        data:
+          hello: world

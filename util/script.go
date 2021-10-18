@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 19:01:54
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 20:59:00
+ * Last Modified: 17-10-2021 21:58:27
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -63,21 +63,29 @@ func (s *ScriptUtil) AppendPatch(patchId string, patchItem *patchv1alpha1.PatchS
 	script := fmt.Sprintf(`##### patch %s #####
 echo ===== applying patch %s =====
 `, patchId, patchId)
+	commandPreview := "echo ----- command -----\n"
+	commandExecute := "echo ----- output -----\n"
+	if patchItem.WaitForTimeout > 0 {
+		commandPreview += fmt.Sprintf("echo sleep %d\n", patchItem.WaitForTimeout)
+		commandExecute += fmt.Sprintf("sleep %d\n", patchItem.WaitForTimeout)
+	}
 	if patchItem.Type == patchv1alpha1.ScriptPatchType {
-		script += "\n" + patchItem.Patch
+		commandPreview += fmt.Sprintf(`cat <<EOF
+%s
+EOF`, patchItem.Patch)
+		commandExecute += patchItem.Patch
 	} else {
 		patchType := ""
 		if patchItem.Type != "" {
 			patchType = " --type " + string(patchItem.Type)
 		}
-		script += fmt.Sprintf(`echo ----- command -----
-echo kubectl cat \<\<EOF \| patch%s --patch-file /tmp/patches/%s.yaml
+		commandPreview += fmt.Sprintf(`echo kubectl cat \<\<EOF \| patch%s --patch-file /tmp/patches/%s.yaml
 cat <<EOF
 %s
 EOF
 echo EOF
-echo ----- output -----
-cat <<EOF > /tmp/patches/%s.yaml
+`, patchType, patchId, patchItem.Patch)
+		commandExecute += fmt.Sprintf(`cat <<EOF > /tmp/patches/%s.yaml
 %s
 EOF
 cat <<EOF | kubectl patch -f -%s --patch-file /tmp/patches/%s.yaml
@@ -88,22 +96,37 @@ metadata:
   namespace: %s
 EOF
 [ "$(echo $?)" = "0" ] || exit $?
-`, patchType, patchId, patchItem.Patch, patchId, patchItem.Patch, patchType, patchId,
+`, patchId, patchItem.Patch, patchType, patchId,
 			resource.GetAPIVersion(),
 			resource.GetKind(),
 			resource.GetName(),
 			resource.GetNamespace(),
 		)
 	}
-	s.script = s.script + script + fmt.Sprintf(`echo -e "===== done applying patch %s =====\n\n\n"
+	s.script = s.script + script + fmt.Sprintf(`%s
+%s
+echo -e "===== done applying patch %s =====\n\n\n"
 
 
-`, patchId)
+`, commandPreview, commandExecute, patchId)
 	return nil
 }
 
 func (s *ScriptUtil) Get() string {
-	return s.script
+	return s.script + fmt.Sprintf(`##### finalization #####
+echo ===== finalizing =====
+echo ----- command -----
+echo "kubectl get pods -n %s \\"
+echo "  -l job-name=%s \\"
+echo "  --field-selector status.phase=Failed \\"
+echo "  -o yaml | kubectl delete -f -"
+echo ----- output -----
+kubectl get pods -n %s \
+  -l job-name=%s \
+  --field-selector status.phase=Failed \
+  -o yaml | kubectl delete -f -
+echo -e "===== done finalizing ====="
+`, s.patch.GetNamespace(), s.patch.GetName(), s.patch.GetNamespace(), s.patch.GetName())
 }
 
 func (s *ScriptUtil) targetToResource(patchId string, patch *v1alpha1.Patch, target *v1alpha1.Target) (*unstructured.Unstructured, error) {
@@ -122,7 +145,7 @@ func (s *ScriptUtil) targetToResource(patchId string, patch *v1alpha1.Patch, tar
 	name := target.Name
 	namespace := target.Namespace
 	if namespace == "" {
-		namespace = patch.Namespace
+		namespace = patch.GetNamespace()
 	}
 	resource.SetAPIVersion(apiVersion)
 	resource.SetKind(kind)

@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 16:35:30
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 19:01:20
+ * Last Modified: 17-10-2021 21:52:36
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -58,7 +58,7 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 	if command == "" {
 		command = "true"
 	}
-	jobs := j.clientset.BatchV1().Jobs(j.patch.Namespace)
+	jobs := j.clientset.BatchV1().Jobs(j.patch.GetNamespace())
 	var backoffLimit int32 = 0
 	image := j.patch.Spec.Image
 	if image == "" {
@@ -66,8 +66,8 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 	}
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      j.patch.Name,
-			Namespace: j.patch.Namespace,
+			Name:      j.patch.GetName(),
+			Namespace: j.patch.GetNamespace(),
 			Labels:    j.patch.Labels,
 		},
 		Spec: batchv1.JobSpec{
@@ -100,12 +100,12 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 }
 
 func (j *JobUtil) Get() (*batchv1.Job, error) {
-	jobs := j.clientset.BatchV1().Jobs(j.patch.Namespace)
+	jobs := j.clientset.BatchV1().Jobs(j.patch.GetNamespace())
 	return jobs.Get(*j.ctx, j.patch.Name, metav1.GetOptions{})
 }
 
 func (j *JobUtil) Delete() error {
-	jobs := j.clientset.BatchV1().Jobs(j.patch.Namespace)
+	jobs := j.clientset.BatchV1().Jobs(j.patch.GetNamespace())
 	if err := jobs.Delete(*j.ctx, j.patch.Name, metav1.DeleteOptions{}); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
