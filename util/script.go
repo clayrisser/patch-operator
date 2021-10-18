@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 19:01:54
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 23:28:53
+ * Last Modified: 18-10-2021 17:19:44
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -78,30 +78,10 @@ echo ===== applying patch %s =====
 		commandPreview += fmt.Sprintf("echo sleep %d\n", patchItem.WaitForTimeout)
 		commandExecute += fmt.Sprintf("sleep %d\n", patchItem.WaitForTimeout)
 	}
-	if patchItem.ApplyIf != nil {
-		for _, applyIf := range patchItem.ApplyIf {
-			target := applyIf.Target
-			if target == nil {
-				target = &patchItem.Target
-			}
-			applyIfResource, err := s.targetToResource(patchId, s.patch, target)
-			if err != nil {
-				return err
-			}
-			jsonPath := ".items[0]"
-			if applyIf.JsonPath != "" && applyIf.JsonPath != "." {
-				if !strings.HasPrefix(applyIf.JsonPath, ".") {
-					jsonPath += "."
-				}
-				jsonPath += applyIf.JsonPath
-			}
-			jsonPath = fmt.Sprintf(" -o jsonpath='{%s}'", jsonPath)
-			regex := ".*"
-			if applyIf.Regex != "" {
-				regex = applyIf.Regex
-			}
-			commandPreview += fmt.Sprintf(`echo export APPLY_PATCH=true
-echo 'cat <<EOF | kubectl get -f -'"%s"' | grep -q -E "%s" || export APPLY_PATCH=false'
+	if patchItem.WaitForResource {
+		commandPreview += fmt.Sprintf(`echo '    unset STATUS'
+echo 'while [ "$STATUS" != "0" ]; do'
+echo 'cat <<EOF | kubectl get -f - >/dev/null'
 cat <<EOF
 apiVersion: %s
 kind: %s
@@ -110,36 +90,92 @@ metadata:
   namespace: %s
 EOF
 echo EOF
-`, jsonPath, regex, applyIfResource.GetAPIVersion(), applyIfResource.GetKind(), applyIfResource.GetName(), applyIfResource.GetNamespace())
-			commandExecute += fmt.Sprintf(`export APPLY_PATCH=true
-cat <<EOF | kubectl get -f -%s | grep -q -E "%s" || export APPLY_PATCH=false
+echo '    export STATUS=$?'
+echo '    [ "$STATUS" = "0" ] || sleep 5'
+echo 'done'
+`, resource.GetAPIVersion(), resource.GetKind(), resource.GetName(), resource.GetNamespace())
+		commandExecute += fmt.Sprintf(`unset STATUS
+while [ "$STATUS" != "0" ]; do
+    cat <<EOF | kubectl get -f - >/dev/null
 apiVersion: %s
 kind: %s
 metadata:
   name: %s
   namespace: %s
 EOF
-`, jsonPath, regex, applyIfResource.GetAPIVersion(), applyIfResource.GetKind(), applyIfResource.GetName(), applyIfResource.GetNamespace())
+    export STATUS=$?
+    [ "$STATUS" = "0" ] || sleep 5
+done
+`, resource.GetAPIVersion(), resource.GetKind(), resource.GetName(), resource.GetNamespace())
+	}
+	if patchItem.SkipIf != nil {
+		for _, skipIf := range patchItem.SkipIf {
+			target := skipIf.Target
+			if target == nil {
+				target = &patchItem.Target
+			}
+			skipIfResource, err := s.targetToResource(patchId, s.patch, target)
+			if err != nil {
+				return err
+			}
+			jsonPath := ".items[0]"
+			if skipIf.JsonPath != "" && skipIf.JsonPath != "." {
+				if !strings.HasPrefix(skipIf.JsonPath, ".") {
+					jsonPath += "."
+				}
+				jsonPath += skipIf.JsonPath
+			}
+			jsonPath = fmt.Sprintf(" -o jsonpath='{%s}'", jsonPath)
+			regex := ".*"
+			if skipIf.Regex != "" {
+				regex = skipIf.Regex
+			}
+			commandPreview += fmt.Sprintf(`echo export SKIP_PATCH=true
+echo 'cat <<EOF | kubectl get -f -'"%s"' | grep -q -E "%s" || export SKIP_PATCH=false'
+cat <<EOF
+apiVersion: %s
+kind: %s
+metadata:
+  name: %s
+  namespace: %s
+EOF
+echo EOF
+`, jsonPath, regex, skipIfResource.GetAPIVersion(), skipIfResource.GetKind(), skipIfResource.GetName(), skipIfResource.GetNamespace())
+			commandExecute += fmt.Sprintf(`export SKIP_PATCH=true
+cat <<EOF | kubectl get -f -%s | grep -q -E "%s" || export SKIP_PATCH=false
+apiVersion: %s
+kind: %s
+metadata:
+  name: %s
+  namespace: %s
+EOF
+`, jsonPath, regex, skipIfResource.GetAPIVersion(), skipIfResource.GetKind(), skipIfResource.GetName(), skipIfResource.GetNamespace())
 		}
 	}
 	if patchItem.Type == patchv1alpha1.ScriptPatchType {
-		commandPreview += fmt.Sprintf(`cat <<EOF
+		commandPreview += fmt.Sprintf(`echo 'if [ "$SKIP_PATCH" = "false" ]; then'
+    cat <<EOF
 %s
-EOF`, patchItem.Patch)
-		commandExecute += patchItem.Patch
+EOF
+echo fi`, patchItem.Patch)
+		commandExecute += fmt.Sprintf(`if [ "$SKIP_PATCH" = "false" ]; then
+%s
+else
+    echo skipping patch %s
+fi`, patchItem.Patch, patchId)
 	} else {
 		patchType := ""
 		if patchItem.Type != "" {
 			patchType = " --type " + string(patchItem.Type)
 		}
-		commandPreview += fmt.Sprintf(`echo 'if [ "$APPLY_PATCH" = "true" ]; then'
+		commandPreview += fmt.Sprintf(`echo 'if [ "$SKIP_PATCH" = "false" ]; then'
 		echo '    kubectl cat <<EOF | patch%s --patch-file /tmp/patches/%s.yaml'
 cat <<EOF
 %s
 EOF
 echo EOF
 echo fi`, patchType, patchId, patchItem.Patch)
-		commandExecute += fmt.Sprintf(`if [ "$APPLY_PATCH" = "true" ]; then
+		commandExecute += fmt.Sprintf(`if [ "$SKIP_PATCH" = "false" ]; then
     cat <<EOF > /tmp/patches/%s.yaml
 %s
 EOF

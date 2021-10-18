@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 22:35:35
+ * Last Modified: 18-10-2021 17:21:12
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -103,14 +103,14 @@ type PatchSpecPatch struct {
 	// wait for the resource to exist
 	WaitForResource bool `json:"waitForResource,omitempty"`
 
-	// apply patch if criteria met
-	ApplyIf []PatchSpecPatchApplyIf `json:"applyIf,omitempty"`
+	// skip patch if criteria met
+	SkipIf []PatchSpecPatchSkipIf `json:"skipIf,omitempty"`
 
 	// optional patch id for reference
 	Id string `json:"id,omitempty"`
 }
 
-type PatchSpecPatchApplyIf struct {
+type PatchSpecPatchSkipIf struct {
 	// the target to check criteria against. if no target specified, the target
 	// being patched will be used
 	Target *Target `json:"target,omitempty"`

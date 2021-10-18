@@ -10,9 +10,10 @@ spec:
         kind: ConfigMap
         name: hello
       waitForTimeout: 5
-      applyIf:
-        - jsonPath: '.data'
-          regex: 'howdy'
+      waitForResource: true
+      skipIf:
+        - jsonPath: data
+          regex: howdy
       patch: |-
         data:
           howdy: texas
@@ -22,9 +23,10 @@ spec:
         kind: ConfigMap
         name: hello
       waitForTimeout: 5
-      applyIf:
-        - jsonPath: '.data'
-          regex: 'fail'
+      waitForResource: true
+      skipIf:
+        - jsonPath: data
+          regex: fail
       type: script
       patch: |-
         echo Hello, world!
@@ -34,8 +36,8 @@ spec:
     #     kind: ConfigMap
     #     name: hello
     #   waitForTimeout: 5
-    #   applyIf:
-    #     - jsonPath: '.data'
+    #   skipIf:
+    #     - jsonPath: data
     #       regex: '.*'
     #   type: json
     #   patch: |-
@@ -48,9 +50,10 @@ spec:
         kind: ConfigMap
         name: hello
       waitForTimeout: 5
-      applyIf:
-        - jsonPath: '.hello'
-          regex: 'hello'
+      waitForResource: true
+      skipIf:
+        - jsonPath: data
+          regex: hello
       type: merge
       patch: |-
         data:
