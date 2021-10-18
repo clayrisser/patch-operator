@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 17:21:12
+ * Last Modified: 18-10-2021 17:33:53
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -25,10 +25,11 @@
 package v1alpha1
 
 import (
+	"gitlab.com/bitspur/community/patch-operator/config"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const PatchFinalizer = "patch.bitspur.com/finalizer"
+const PatchFinalizer = config.PatchGroup + "." + config.Domain + "/finalizer"
 
 type PatchType string
 

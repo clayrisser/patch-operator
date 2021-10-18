@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 22:41:35
+ * Last Modified: 18-10-2021 17:42:22
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -62,7 +62,7 @@ type PatchReconciler struct {
 func (r *PatchReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx, "patch", req.NamespacedName)
 	log.Log.Info("RECONCILING PATCH")
-	patchUtil := util.NewPatchUtil(&r.Client, &ctx, &req, log.Log,
+	patchUtil := util.NewPatchUtil(&r.Client, &ctx, &req, r.Scheme, log.Log,
 		&patchv1alpha1.NamespacedName{
 			Name:      req.NamespacedName.Name,
 			Namespace: req.NamespacedName.Namespace,

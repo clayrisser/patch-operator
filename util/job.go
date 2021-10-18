@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 16:35:30
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 21:52:36
+ * Last Modified: 18-10-2021 17:45:15
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -28,29 +28,35 @@ import (
 	"context"
 
 	patchv1alpha1 "gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
+	"gitlab.com/bitspur/community/patch-operator/config"
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
+const PatchLabel = config.PatchGroup + "." + config.Domain + "/patch"
+
 type JobUtil struct {
-	ctx       *context.Context
 	cfg       *rest.Config
 	clientset *kubernetes.Clientset
+	ctx       *context.Context
 	patch     *patchv1alpha1.Patch
+	scheme    *runtime.Scheme
 }
 
-func NewJobUtil(patch *patchv1alpha1.Patch, ctx *context.Context) *JobUtil {
+func NewJobUtil(patch *patchv1alpha1.Patch, ctx *context.Context, scheme *runtime.Scheme) *JobUtil {
 	cfg := ctrl.GetConfigOrDie()
 	return &JobUtil{
 		cfg:       cfg,
 		clientset: kubernetes.NewForConfigOrDie(cfg),
 		ctx:       ctx,
 		patch:     patch,
+		scheme:    scheme,
 	}
 }
 
@@ -64,16 +70,23 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 	if image == "" {
 		image = "codejamninja/kube-commands:0.0.2"
 	}
+	labels := j.patch.Labels
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	labels[PatchLabel] = j.patch.GetName()
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      j.patch.GetName(),
 			Namespace: j.patch.GetNamespace(),
-			Labels:    j.patch.Labels,
+			Labels:    labels,
 		},
 		Spec: batchv1.JobSpec{
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: j.patch.Labels,
+					Labels: map[string]string{
+						PatchLabel: j.patch.GetName(),
+					},
 				},
 				Spec: v1.PodSpec{
 					RestartPolicy: v1.RestartPolicyNever,
@@ -96,6 +109,7 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 			BackoffLimit: &backoffLimit,
 		},
 	}
+	ctrl.SetControllerReference(j.patch, job, j.scheme)
 	return jobs.Create(*j.ctx, job, metav1.CreateOptions{})
 }
 

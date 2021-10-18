@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:37:55
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 22:32:25
+ * Last Modified: 18-10-2021 17:51:26
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -35,6 +35,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apiserver/pkg/registry/generic/registry"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -51,12 +52,14 @@ type PatchUtil struct {
 	mutex          *sync.Mutex
 	namespacedName types.NamespacedName
 	req            *ctrl.Request
+	scheme         *runtime.Scheme
 }
 
 func NewPatchUtil(
 	client *client.Client,
 	ctx *context.Context,
 	req *ctrl.Request,
+	scheme *runtime.Scheme,
 	log *log.DelegatingLogger,
 	namespacedName *patchv1alpha1.NamespacedName,
 	mutex *sync.Mutex,
@@ -73,6 +76,7 @@ func NewPatchUtil(
 		mutex:          mutex,
 		namespacedName: EnsureNamespacedName(namespacedName, operatorNamespace),
 		req:            req,
+		scheme:         scheme,
 	}
 }
 
@@ -103,7 +107,7 @@ func (u *PatchUtil) Patching(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
 			return u.Error(err)
 		}
 	}
-	jobUtil := NewJobUtil(patch, u.ctx)
+	jobUtil := NewJobUtil(patch, u.ctx, u.scheme)
 	jobUtil.Create(scriptUtil.Get(), &[]v1.EnvVar{})
 	return u.UpdateStatusPatching()
 }
@@ -113,7 +117,7 @@ func (u *PatchUtil) PatchedProbe(patch *patchv1alpha1.Patch) bool {
 }
 
 func (u *PatchUtil) Patched(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
-	jobUtil := NewJobUtil(patch, u.ctx)
+	jobUtil := NewJobUtil(patch, u.ctx, u.scheme)
 	completed, err := jobUtil.Completed()
 	if err != nil {
 		return u.Error(err)
@@ -133,10 +137,6 @@ func (u *PatchUtil) FinalizeProbe(patch *patchv1alpha1.Patch) bool {
 
 func (u *PatchUtil) Finalize(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
 	if controllerutil.ContainsFinalizer(patch, patchv1alpha1.PatchFinalizer) {
-		jobUtil := NewJobUtil(patch, u.ctx)
-		if err := jobUtil.Delete(); err != nil {
-			return u.Error(err)
-		}
 		controllerutil.RemoveFinalizer(patch, patchv1alpha1.PatchFinalizer)
 		if err := u.update(patch); err != nil {
 			return u.Error(err)

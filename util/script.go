@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 19:01:54
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 17:19:44
+ * Last Modified: 18-10-2021 17:50:43
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -46,12 +46,14 @@ echo ===== initializing =====
 echo ----- command -----
 echo 'kubectl get pods -n %s \'
 echo '    -l job-name=%s \'
+echo '    -l %s=%s \'
 echo '    --field-selector status.phase=Succeeded \'
 echo '    -o yaml | kubectl delete -f -'
 echo mkdir -p /tmp/patches
 echo ----- output -----
 kubectl get pods -n %s \
     -l job-name=%s \
+    -l %s=%s \
     --field-selector status.phase=Succeeded \
     -o yaml | kubectl delete -f -
 mkdir -p /tmp/patches
@@ -59,7 +61,9 @@ echo -e "===== done initializing =====\n\n\n"
 
 
 
-`, patch.GetNamespace(), patch.GetName(), patch.GetNamespace(), patch.GetName()),
+`, patch.GetNamespace(), patch.GetName(), PatchLabel, patch.GetName(),
+			patch.GetNamespace(), patch.GetName(), PatchLabel, patch.GetName(),
+		),
 		patch: patch,
 	}
 }
@@ -213,15 +217,18 @@ echo ===== finalizing =====
 echo ----- command -----
 echo 'kubectl get pods -n %s \'
 echo '    -l job-name=%s \'
+echo '    -l %s=%s \'
 echo '    --field-selector status.phase=Failed \'
 echo '    -o yaml | kubectl delete -f -'
 echo ----- output -----
 kubectl get pods -n %s \
     -l job-name=%s \
+    -l %s=%s \
     --field-selector status.phase=Failed \
     -o yaml | kubectl delete -f -
 echo -e "===== done finalizing ====="
-`, s.patch.GetNamespace(), s.patch.GetName(), s.patch.GetNamespace(), s.patch.GetName())
+`, s.patch.GetNamespace(), s.patch.GetName(), PatchLabel, s.patch.GetName(),
+		s.patch.GetNamespace(), s.patch.GetName(), PatchLabel, s.patch.GetName())
 }
 
 func (s *ScriptUtil) targetToResource(patchId string, patch *v1alpha1.Patch, target *v1alpha1.Target) (*unstructured.Unstructured, error) {
