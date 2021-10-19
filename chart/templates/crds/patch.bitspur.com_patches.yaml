@@ -36,6 +36,9 @@ spec:
           spec:
             description: the desired state of the patch
             properties:
+              epoch:
+                description: change epoch to force recalibration
+                type: string
               image:
                 description: image used in the job
                 type: string
@@ -202,6 +205,9 @@ spec:
                 type: string
               phase:
                 description: integration plug phase (Pending, Succeeded, Failed, Unknown)
+                type: string
+              specHash:
+                description: spec hash
                 type: string
             type: object
         type: object

@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 17:33:53
+ * Last Modified: 18-10-2021 18:23:28
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -47,6 +47,9 @@ type PatchSpec struct {
 
 	// image used in the job
 	Image string `json:"image,omitempty"`
+
+	// change epoch to force recalibration
+	Epoch string `json:"epoch,omitempty"`
 }
 
 // PatchStatus defines the observed state of Patch
@@ -62,6 +65,9 @@ type PatchStatus struct {
 
 	// status message
 	Message string `json:"message,omitempty"`
+
+	// spec hash
+	SpecHash string `json:"specHash,omitempty"`
 }
 
 //+kubebuilder:object:root=true

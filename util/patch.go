@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:37:55
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 17:51:26
+ * Last Modified: 18-10-2021 20:28:19
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -26,10 +26,14 @@ package util
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 
+	"github.com/cespare/xxhash"
+	"gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
 	patchv1alpha1 "gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
 	"gitlab.com/bitspur/community/patch-operator/config"
 	v1 "k8s.io/api/core/v1"
@@ -109,7 +113,7 @@ func (u *PatchUtil) Patching(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
 	}
 	jobUtil := NewJobUtil(patch, u.ctx, u.scheme)
 	jobUtil.Create(scriptUtil.Get(), &[]v1.EnvVar{})
-	return u.UpdateStatusPatching()
+	return u.UpdateStatusPatching(patch)
 }
 
 func (u *PatchUtil) PatchedProbe(patch *patchv1alpha1.Patch) bool {
@@ -128,7 +132,24 @@ func (u *PatchUtil) Patched(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
 			RequeueAfter: config.DefaultRequeueAfter,
 		}, nil
 	}
-	return u.UpdateStatusPatched()
+	return u.UpdateStatusPatched(patch)
+}
+
+func (u *PatchUtil) RecalibrateProbe(patch *patchv1alpha1.Patch) (bool, error) {
+	specHash, err := u.getSpecHash(patch)
+	if err != nil {
+		return false, err
+	}
+	return patch.Status.SpecHash != "" &&
+		specHash != patch.Status.SpecHash, nil
+}
+
+func (u *PatchUtil) Recalibrate(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+	jobUtil := NewJobUtil(patch, u.ctx, u.scheme)
+	if err := jobUtil.Delete(); err != nil {
+		return u.Error(err)
+	}
+	return u.ResetStatus(patch)
 }
 
 func (u *PatchUtil) FinalizeProbe(patch *patchv1alpha1.Patch) bool {
@@ -168,8 +189,8 @@ func (u *PatchUtil) Error(err error) (ctrl.Result, error) {
 		patch.Status.LastUpdate,
 		2,
 	)
-	u.log.Error(nil, err.Error())
 	if strings.Index(err.Error(), registry.OptimisticLockErrorMsg) <= -1 {
+		u.log.Error(nil, err.Error())
 		if _err := u.updateErrorStatus(err); _err != nil {
 			if strings.Contains(_err.Error(), registry.OptimisticLockErrorMsg) {
 				return ctrl.Result{
@@ -190,33 +211,48 @@ func (u *PatchUtil) Error(err error) (ctrl.Result, error) {
 }
 
 func (u *PatchUtil) UpdateStatus(
+	patch *v1alpha1.Patch,
 	phase patchv1alpha1.Phase,
 	patchConditionType *PatchConditionType,
 ) (ctrl.Result, error) {
-	patch, err := u.Get()
-	if err != nil {
-		return u.Error(err)
-	}
 	if phase != "" {
 		u.setPhaseStatus(patch, phase)
 	}
 	if patchConditionType != nil {
 		u.setCondition(patch, *patchConditionType, true, "")
 	}
+	specHash, err := u.getSpecHash(patch)
+	if err != nil {
+		return u.Error(err)
+	}
+	patch.Status.SpecHash = specHash
 	if err := u.updateStatus(patch, false); err != nil {
 		return u.Error(err)
 	}
 	return ctrl.Result{Requeue: true}, nil
 }
 
-func (u *PatchUtil) UpdateStatusPatching() (ctrl.Result, error) {
+func (u *PatchUtil) UpdateStatusPatching(patch *v1alpha1.Patch) (ctrl.Result, error) {
 	patchConditionType := PatchPatching
-	return u.UpdateStatus(patchv1alpha1.PendingPhase, &patchConditionType)
+	return u.UpdateStatus(patch, patchv1alpha1.PendingPhase, &patchConditionType)
 }
 
-func (u *PatchUtil) UpdateStatusPatched() (ctrl.Result, error) {
+func (u *PatchUtil) UpdateStatusPatched(patch *v1alpha1.Patch) (ctrl.Result, error) {
 	patchConditionType := PatchPatched
-	return u.UpdateStatus(patchv1alpha1.SucceededPhase, &patchConditionType)
+	return u.UpdateStatus(patch, patchv1alpha1.SucceededPhase, &patchConditionType)
+}
+
+func (u *PatchUtil) ResetStatus(patch *v1alpha1.Patch) (ctrl.Result, error) {
+	for _, conditionType := range patchConditionTypes {
+		meta.RemoveStatusCondition(&patch.Status.Conditions, string(conditionType))
+	}
+	patch.Status.Message = ""
+	patch.Status.Phase = ""
+	patch.Status.SpecHash = ""
+	if err := u.updateStatus(patch, false); err != nil {
+		return u.Error(err)
+	}
+	return ctrl.Result{Requeue: true}, nil
 }
 
 func (u *PatchUtil) updateErrorStatus(err error) error {
@@ -276,6 +312,14 @@ func (u *PatchUtil) getConditionStatus(patch *patchv1alpha1.Patch, patchConditio
 
 func (u *PatchUtil) getCondition(patch *patchv1alpha1.Patch, patchConditionType PatchConditionType) *metav1.Condition {
 	return meta.FindStatusCondition(patch.Status.Conditions, string(patchConditionType))
+}
+
+func (u *PatchUtil) getSpecHash(patch *patchv1alpha1.Patch) (string, error) {
+	bSpec, err := json.Marshal(patch.Spec)
+	if err != nil {
+		return "", err
+	}
+	return strconv.FormatUint(xxhash.Sum64(bSpec), 16), nil
 }
 
 func (u *PatchUtil) setCondition(

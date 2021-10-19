@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 17:42:22
+ * Last Modified: 18-10-2021 20:16:05
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -90,6 +90,14 @@ func (r *PatchReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 	if patchUtil.PatchedProbe(patch) {
 		return patchUtil.Patched(patch)
+	}
+
+	recalibrate, err := patchUtil.RecalibrateProbe(patch)
+	if err != nil {
+		return patchUtil.Error(err)
+	}
+	if recalibrate {
+		return patchUtil.Recalibrate(patch)
 	}
 
 	return ctrl.Result{}, nil

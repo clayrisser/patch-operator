@@ -3,6 +3,7 @@ module gitlab.com/bitspur/community/patch-operator
 go 1.16
 
 require (
+	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
 	k8s.io/api v0.22.2
