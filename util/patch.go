@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:37:55
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 20:28:19
+ * Last Modified: 18-10-2021 22:00:26
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -27,6 +27,7 @@ package util
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -96,11 +97,36 @@ func (u *PatchUtil) InitializeFinalizer(patch *patchv1alpha1.Patch) (ctrl.Result
 	return ctrl.Result{}, nil
 }
 
+func (u *PatchUtil) PauseProbe(patch *patchv1alpha1.Patch) (bool, error) {
+	specHash, err := u.getSpecHash(patch)
+	if err != nil {
+		return false, err
+	}
+	return patch.Status.PauseUntilUpdate && patch.Status.SpecHash != "" &&
+		specHash == patch.Status.SpecHash, nil
+}
+
+func (u *PatchUtil) Pause(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+	fmt.Println("pausing")
+	return ctrl.Result{}, nil
+}
+
 func (u *PatchUtil) PatchingProbe(patch *patchv1alpha1.Patch) bool {
 	return (!u.getConditionStatus(patch, PatchPatching) && !u.getConditionStatus(patch, PatchPatched))
 }
 
 func (u *PatchUtil) Patching(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
+	jobUtil := NewJobUtil(patch, u.ctx, u.scheme)
+	owned, err := jobUtil.Owned()
+	if err != nil {
+		return u.Error(err)
+	}
+	if !owned {
+		return u.Error(errors.New(fmt.Sprintf("job %s already exists", patch.GetName())))
+	}
+	if err := jobUtil.Delete(); err != nil {
+		return u.Error(err)
+	}
 	scriptUtil := NewScriptUtil(patch)
 	for i, patchItem := range patch.Spec.Patches {
 		patchId := patchItem.Id
@@ -111,7 +137,6 @@ func (u *PatchUtil) Patching(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
 			return u.Error(err)
 		}
 	}
-	jobUtil := NewJobUtil(patch, u.ctx, u.scheme)
 	jobUtil.Create(scriptUtil.Get(), &[]v1.EnvVar{})
 	return u.UpdateStatusPatching(patch)
 }
@@ -122,9 +147,16 @@ func (u *PatchUtil) PatchedProbe(patch *patchv1alpha1.Patch) bool {
 
 func (u *PatchUtil) Patched(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
 	jobUtil := NewJobUtil(patch, u.ctx, u.scheme)
-	completed, err := jobUtil.Completed()
+	completed, errorMessage, err := jobUtil.Completed()
 	if err != nil {
 		return u.Error(err)
+	}
+	if errorMessage != "" {
+		patch.Status.PauseUntilUpdate = true
+		if err := u.updateErrorStatus(patch, errors.New(errorMessage)); err != nil {
+			return u.Error(err)
+		}
+		return ctrl.Result{}, nil
 	}
 	if !completed {
 		return ctrl.Result{
@@ -191,7 +223,7 @@ func (u *PatchUtil) Error(err error) (ctrl.Result, error) {
 	)
 	if strings.Index(err.Error(), registry.OptimisticLockErrorMsg) <= -1 {
 		u.log.Error(nil, err.Error())
-		if _err := u.updateErrorStatus(err); _err != nil {
+		if _err := u.updateErrorStatus(patch, err); _err != nil {
 			if strings.Contains(_err.Error(), registry.OptimisticLockErrorMsg) {
 				return ctrl.Result{
 					Requeue:      true,
@@ -226,6 +258,7 @@ func (u *PatchUtil) UpdateStatus(
 		return u.Error(err)
 	}
 	patch.Status.SpecHash = specHash
+	patch.Status.PauseUntilUpdate = false
 	if err := u.updateStatus(patch, false); err != nil {
 		return u.Error(err)
 	}
@@ -249,17 +282,14 @@ func (u *PatchUtil) ResetStatus(patch *v1alpha1.Patch) (ctrl.Result, error) {
 	patch.Status.Message = ""
 	patch.Status.Phase = ""
 	patch.Status.SpecHash = ""
+	patch.Status.PauseUntilUpdate = false
 	if err := u.updateStatus(patch, false); err != nil {
 		return u.Error(err)
 	}
 	return ctrl.Result{Requeue: true}, nil
 }
 
-func (u *PatchUtil) updateErrorStatus(err error) error {
-	patch, _err := u.Get()
-	if _err != nil {
-		return _err
-	}
+func (u *PatchUtil) updateErrorStatus(patch *v1alpha1.Patch, err error) error {
 	u.setErrorStatus(patch, err)
 	if _err := u.updateStatus(patch, true); _err != nil {
 		return _err

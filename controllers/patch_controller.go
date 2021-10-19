@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 20:16:05
+ * Last Modified: 18-10-2021 21:28:25
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -82,6 +82,14 @@ func (r *PatchReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 	if patchUtil.InitializeFinalizerProbe(patch) {
 		return patchUtil.InitializeFinalizer(patch)
+	}
+
+	pause, err := patchUtil.PauseProbe(patch)
+	if err != nil {
+		return patchUtil.Error((err))
+	}
+	if pause {
+		return patchUtil.Pause(patch)
 	}
 
 	if patchUtil.PatchingProbe(patch) {

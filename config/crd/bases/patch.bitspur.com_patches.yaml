@@ -203,6 +203,9 @@ spec:
               message:
                 description: status message
                 type: string
+              pauseUntilUpdate:
+                description: pause until update
+                type: boolean
               phase:
                 description: integration plug phase (Pending, Succeeded, Failed, Unknown)
                 type: string

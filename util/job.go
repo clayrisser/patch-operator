@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 16:35:30
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 17:45:15
+ * Last Modified: 18-10-2021 21:57:24
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -31,7 +31,7 @@ import (
 	"gitlab.com/bitspur/community/patch-operator/config"
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -118,10 +118,33 @@ func (j *JobUtil) Get() (*batchv1.Job, error) {
 	return jobs.Get(*j.ctx, j.patch.Name, metav1.GetOptions{})
 }
 
+func (j *JobUtil) Owned() (bool, error) {
+	job, err := j.Get()
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			return true, nil
+		}
+		return false, err
+	}
+	for _, ownerReference := range job.OwnerReferences {
+		if ownerReference.UID == j.patch.GetUID() {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (j *JobUtil) Delete() error {
+	owned, err := j.Owned()
+	if err != nil {
+		return err
+	}
+	if !owned {
+		return nil
+	}
 	jobs := j.clientset.BatchV1().Jobs(j.patch.GetNamespace())
 	if err := jobs.Delete(*j.ctx, j.patch.Name, metav1.DeleteOptions{}); err != nil {
-		if errors.IsNotFound(err) {
+		if k8sErrors.IsNotFound(err) {
 			return nil
 		}
 		return err
@@ -129,22 +152,26 @@ func (j *JobUtil) Delete() error {
 	return nil
 }
 
-func (j *JobUtil) Completed() (bool, error) {
+func (j *JobUtil) Completed() (bool, string, error) {
 	job, err := j.Get()
 	if err != nil {
-		if errors.IsNotFound(err) { // if job cleaned up, assume completed
-			return true, nil
+		if k8sErrors.IsNotFound(err) { // if job cleaned up, assume completed
+			return true, "", nil
 		}
-		return false, err
+		return false, "", err
+	}
+	jobFailed := j.findJobStatusCondition(job.Status.Conditions, batchv1.JobFailed)
+	if jobFailed != nil && jobFailed.Status == "True" {
+		return true, jobFailed.Message, nil
 	}
 	jobComplete := j.findJobStatusCondition(job.Status.Conditions, batchv1.JobComplete)
 	if jobComplete == nil {
-		return false, nil
+		return false, "", nil
 	}
 	if jobComplete.Status != "True" {
-		return false, nil
+		return false, "", nil
 	}
-	return true, nil
+	return true, "", nil
 }
 
 func (j *JobUtil) findJobStatusCondition(conditions []batchv1.JobCondition, conditionType batchv1.JobConditionType) *batchv1.JobCondition {

@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 18:23:28
+ * Last Modified: 18-10-2021 21:17:29
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -68,6 +68,9 @@ type PatchStatus struct {
 
 	// spec hash
 	SpecHash string `json:"specHash,omitempty"`
+
+	// pause until update
+	PauseUntilUpdate bool `json:"pauseUntilUpdate,omitempty"`
 }
 
 //+kubebuilder:object:root=true
