@@ -53,17 +53,19 @@ spec:
         - name: {{ template "patch-operator.name" . }}
           image: {{ .Values.images.patchOperator.repository }}:{{ .Values.images.patchOperator.tag }}
           imagePullPolicy: {{ .Values.config.imagePullPolicy }}
-          # resources:
-          #   requests:
-          #     cpu: {{ .Values.config.patchOperator.resources.requests.cpu }}
-          #     memory: {{ .Values.config.patchOperator.resources.requests.memory }}
-          #   limits:
-          #     cpu: {{ .Values.config.patchOperator.resources.limits.cpu }}
-          #     memory: {{ .Values.config.patchOperator.resources.limits.memory }}
+          {{- if (and .Values.config.patchOperator.resources.enabled (not (eq .Values.config.patchOperator.resources.enabled "false"))) }}
+          resources:
+            requests:
+{{ toYaml .Values.config.patchOperator.resources.requests | indent 14 }}
+            limits:
+{{ toYaml .Values.config.patchOperator.resources.limits | indent 14 }}
+          {{- else }}
+          resources: {}
+          {{- end }}
           {{- if .Values.config.debug }}
           env:
             - name: DEBUG_OPERATOR
-              value: 'true'
+              value: '{{ .Values.config.debug }}'
           {{- else }}
           env: []
           {{- end }}

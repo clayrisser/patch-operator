@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:44:20
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 17:33:31
+ * Last Modified: 19-10-2021 07:52:02
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -25,7 +25,6 @@
 package config
 
 import (
-	"os"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -34,8 +33,6 @@ import (
 var MaxRequeueDuration time.Duration = time.Duration(float64(time.Hour.Nanoseconds() * 6))
 
 var StartTime metav1.Time = metav1.Now()
-
-var DebugPatchEndpoint = os.Getenv("DEBUG_PATCH_ENDPOINT")
 
 const DefaultRequeueAfter = time.Duration(time.Second * 15)
 

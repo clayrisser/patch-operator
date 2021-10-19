@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:40:48
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 19:49:58
+ * Last Modified: 19-10-2021 07:53:33
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -47,7 +47,7 @@ func Default(value string, defaultValue string) string {
 }
 
 func GetOperatorNamespace() string {
-	operatorNamespace := os.Getenv("POD_NAMESPACE")
+	operatorNamespace := os.Getenv("NAMESPACE")
 	if operatorNamespace == "" {
 		operatorNamespace = "kube-system"
 	}
