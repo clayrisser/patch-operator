@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:37:55
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 22:00:26
+ * Last Modified: 18-10-2021 22:04:02
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -107,7 +107,6 @@ func (u *PatchUtil) PauseProbe(patch *patchv1alpha1.Patch) (bool, error) {
 }
 
 func (u *PatchUtil) Pause(patch *patchv1alpha1.Patch) (ctrl.Result, error) {
-	fmt.Println("pausing")
 	return ctrl.Result{}, nil
 }
 
