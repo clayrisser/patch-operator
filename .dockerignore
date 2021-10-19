@@ -15,4 +15,4 @@ bin
 testbin/*
 
 # app
-/.mkpm
+.mkpm/

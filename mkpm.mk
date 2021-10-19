@@ -3,7 +3,7 @@
 # File Created: 16-10-2021 13:12:34
 # Author: Clay Risser
 # -----
-# Last Modified: 16-10-2021 13:13:46
+# Last Modified: 19-10-2021 07:41:25
 # Modified By: Clay Risser
 # -----
 # BitSpur Inc (c) Copyright 2021
@@ -21,6 +21,7 @@
 # limitations under the License.
 
 MKPM_PACKAGES := \
+	docker=0.0.3 \
 	gnu=0.0.1
 
 MKPM_REPOS := \

@@ -1,9 +1,9 @@
 # File: /Makefile
-# Project: patch-operator
-# File Created: 16-10-2021 13:14:09
+# Project: docker
+# File Created: 19-10-2021 07:37:12
 # Author: Clay Risser
 # -----
-# Last Modified: 19-10-2021 07:42:48
+# Last Modified: 19-10-2021 07:41:32
 # Modified By: Clay Risser
 # -----
 # BitSpur Inc (c) Copyright 2021
@@ -20,24 +20,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include mkpm.mk
+include ../mkpm.mk
 ifneq (,$(MKPM))
 -include $(MKPM)/gnu
 
-.DEFAULT_GOAL := build
+export CONTEXT := ..
+export NAME := bitspur/community/patch-operator
+export REGISTRY := registry.gitlab.com
+export VERSION := 0.0.1
 
-.PHONY: of-% build generate manifests install uninstall start
-build: of-build
-start: of-run
-generate: of-generate
-install: of-install
-manifests: generate of-manifests
-uninstall: of-uninstall
-of-%:
-	@$(MAKE) -s -f ./operator-framework.mk $(subst of-,,$@)
-
-.PHONY: docker-%
-docker-%:
-	@$(MAKE) -s -C docker $(subst docker-,,$@)
+-include $(MKPM)/docker
 
 endif
