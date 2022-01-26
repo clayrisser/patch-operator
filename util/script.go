@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 19:01:54
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 17:50:43
+ * Last Modified: 26-01-2022 09:17:25
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -157,12 +157,12 @@ EOF
 		}
 	}
 	if patchItem.Type == patchv1alpha1.ScriptPatchType {
-		commandPreview += fmt.Sprintf(`echo 'if [ "$SKIP_PATCH" = "false" ]; then'
+		commandPreview += fmt.Sprintf(`echo 'if [ "$SKIP_PATCH" != "true" ]; then'
     cat <<EOF
 %s
 EOF
 echo fi`, patchItem.Patch)
-		commandExecute += fmt.Sprintf(`if [ "$SKIP_PATCH" = "false" ]; then
+		commandExecute += fmt.Sprintf(`if [ "$SKIP_PATCH" != "true" ]; then
 %s
 else
     echo skipping patch %s
@@ -172,14 +172,14 @@ fi`, patchItem.Patch, patchId)
 		if patchItem.Type != "" {
 			patchType = " --type " + string(patchItem.Type)
 		}
-		commandPreview += fmt.Sprintf(`echo 'if [ "$SKIP_PATCH" = "false" ]; then'
+		commandPreview += fmt.Sprintf(`echo 'if [ "$SKIP_PATCH" != "true" ]; then'
 		echo '    kubectl cat <<EOF | patch%s --patch-file /tmp/patches/%s.yaml'
 cat <<EOF
 %s
 EOF
 echo EOF
 echo fi`, patchType, patchId, patchItem.Patch)
-		commandExecute += fmt.Sprintf(`if [ "$SKIP_PATCH" = "false" ]; then
+		commandExecute += fmt.Sprintf(`if [ "$SKIP_PATCH" != "true" ]; then
     cat <<EOF > /tmp/patches/%s.yaml
 %s
 EOF
