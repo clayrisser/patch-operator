@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 16:35:30
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 21:57:24
+ * Last Modified: 26-01-2022 09:18:10
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -77,7 +77,7 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 	labels[PatchLabel] = j.patch.GetName()
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      j.patch.GetName(),
+			Name:      j.patch.GetName() + "-patch",
 			Namespace: j.patch.GetNamespace(),
 			Labels:    labels,
 		},
