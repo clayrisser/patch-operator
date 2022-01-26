@@ -3,7 +3,7 @@
 # File Created: 19-10-2021 07:37:12
 # Author: Clay Risser
 # -----
-# Last Modified: 19-10-2021 07:41:32
+# Last Modified: 26-01-2022 09:21:43
 # Modified By: Clay Risser
 # -----
 # BitSpur Inc (c) Copyright 2021
@@ -21,14 +21,15 @@
 # limitations under the License.
 
 include ../mkpm.mk
-ifneq (,$(MKPM))
--include $(MKPM)/gnu
+ifneq (,$(MKPM_READY))
+include $(MKPM)/gnu
 
+export DOCKER_COMPOSE := docker-compose
 export CONTEXT := ..
 export NAME := bitspur/community/patch-operator
 export REGISTRY := registry.gitlab.com
 export VERSION := 0.0.1
 
--include $(MKPM)/docker
+include $(MKPM)/docker
 
 endif

@@ -3,7 +3,7 @@
 # File Created: 16-10-2021 13:14:09
 # Author: Clay Risser
 # -----
-# Last Modified: 19-10-2021 07:42:48
+# Last Modified: 26-01-2022 09:21:54
 # Modified By: Clay Risser
 # -----
 # BitSpur Inc (c) Copyright 2021
@@ -21,10 +21,8 @@
 # limitations under the License.
 
 include mkpm.mk
-ifneq (,$(MKPM))
--include $(MKPM)/gnu
-
-.DEFAULT_GOAL := build
+ifneq (,$(MKPM_READY))
+include $(MKPM)/gnu
 
 .PHONY: of-% build generate manifests install uninstall start
 build: of-build

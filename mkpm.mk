@@ -3,7 +3,7 @@
 # File Created: 16-10-2021 13:12:34
 # Author: Clay Risser
 # -----
-# Last Modified: 19-10-2021 07:41:25
+# Last Modified: 26-01-2022 09:20:41
 # Modified By: Clay Risser
 # -----
 # BitSpur Inc (c) Copyright 2021
@@ -21,26 +21,26 @@
 # limitations under the License.
 
 MKPM_PACKAGES := \
-	docker=0.0.3 \
-	gnu=0.0.1
+	docker=0.0.9 \
+	gnu=0.0.3
 
 MKPM_REPOS := \
-	https://gitlab.com/bitspur/community/mkpm-stable.git
+	https://gitlab.com/risserlabs/community/mkpm-stable.git
 
 ############# MKPM BOOTSTRAP SCRIPT BEGIN #############
-MKPM_BOOTSTRAP := https://bitspur.gitlab.io/community/mkpm/bootstrap.mk
+MKPM_BOOTSTRAP := https://risserlabs.gitlab.io/community/mkpm/bootstrap.mk
+export PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 NULL := /dev/null
 TRUE := true
-ifeq ($(OS),Windows_NT)
+ifneq ($(patsubst %.exe,%,$(SHELL)),$(SHELL))
 	NULL = nul
 	TRUE = type nul
 endif
--include .mkpm/.bootstrap.mk
-.mkpm/.bootstrap.mk:
-	@mkdir .mkpm 2>$(NULL) || $(TRUE)
-	@cd .mkpm && \
-		$(shell curl --version >$(NULL) 2>$(NULL) && \
+-include $(PROJECT_ROOT)/.mkpm/.bootstrap.mk
+$(PROJECT_ROOT)/.mkpm/.bootstrap.mk:
+	@mkdir $(@D) 2>$(NULL) || $(TRUE)
+	@$(shell curl --version >$(NULL) 2>$(NULL) && \
 			echo curl -L -o || \
 			echo wget --content-on-error -O) \
-		.bootstrap.mk $(MKPM_BOOTSTRAP) >$(NULL)
+		$@ $(MKPM_BOOTSTRAP) >$(NULL)
 ############## MKPM BOOTSTRAP SCRIPT END ##############
