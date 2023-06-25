@@ -1,4 +1,4 @@
-module gitlab.com/bitspur/community/patch-operator
+module gitlab.com/bitspur/rock8s/patch-operator
 
 go 1.16
 

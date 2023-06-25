@@ -3,7 +3,7 @@
 # File Created: 19-10-2021 07:37:12
 # Author: Clay Risser
 # -----
-# Last Modified: 26-01-2022 09:21:43
+# Last Modified: 25-06-2023 14:12:49
 # Modified By: Clay Risser
 # -----
 # BitSpur Inc (c) Copyright 2021
@@ -26,9 +26,9 @@ include $(MKPM)/gnu
 
 export DOCKER_COMPOSE := docker-compose
 export CONTEXT := ..
-export NAME := bitspur/community/patch-operator
+export NAME := bitspur/rock8s/patch-operator
 export REGISTRY := registry.gitlab.com
-export VERSION := 0.0.1
+export VERSION := 0.1.0
 
 include $(MKPM)/docker
 

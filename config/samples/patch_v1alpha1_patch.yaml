@@ -1,4 +1,4 @@
-apiVersion: patch.bitspur.com/v1alpha1
+apiVersion: patch.rock8s.com/v1alpha1
 kind: Patch
 metadata:
   name: patch-sample

@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 19:01:54
  * Author: Clay Risser
  * -----
- * Last Modified: 26-01-2022 09:17:25
+ * Last Modified: 25-06-2023 14:02:25
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -29,8 +29,8 @@ import (
 	"fmt"
 	"strings"
 
-	"gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
-	patchv1alpha1 "gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
+	"gitlab.com/bitspur/rock8s/patch-operator/api/v1alpha1"
+	patchv1alpha1 "gitlab.com/bitspur/rock8s/patch-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 

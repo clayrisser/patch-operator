@@ -4,21 +4,21 @@ kind: ClusterRole
 metadata:
   name: patch-editor-role
 rules:
-- apiGroups:
-  - patch.bitspur.com
-  resources:
-  - patches
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - patch.bitspur.com
-  resources:
-  - patches/status
-  verbs:
-  - get
+  - apiGroups:
+      - patch.rock8s.com
+    resources:
+      - patches
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - patch.rock8s.com
+    resources:
+      - patches/status
+    verbs:
+      - get

@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 21:28:25
+ * Last Modified: 25-06-2023 14:03:21
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -26,6 +26,8 @@ package controllers
 
 import (
 	"context"
+	"os"
+	"strconv"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -36,8 +38,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	patchv1alpha1 "gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
-	"gitlab.com/bitspur/community/patch-operator/util"
+	patchv1alpha1 "gitlab.com/bitspur/rock8s/patch-operator/api/v1alpha1"
+	"gitlab.com/bitspur/rock8s/patch-operator/util"
 )
 
 // PatchReconciler reconciles a Patch object
@@ -46,9 +48,9 @@ type PatchReconciler struct {
 	client.Client
 }
 
-//+kubebuilder:rbac:groups=patch.bitspur.com,resources=patches,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=patch.bitspur.com,resources=patches/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=patch.bitspur.com,resources=patches/finalizers,verbs=update
+//+kubebuilder:rbac:groups=patch.rock8s.com,resources=patches,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=patch.rock8s.com,resources=patches/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=patch.rock8s.com,resources=patches/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -125,10 +127,15 @@ func filterPatchPredicate() predicate.Predicate {
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *PatchReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	maxConcurrentReconciles := 3
+	if value := os.Getenv("MAX_CONCURRENT_RECONCILES"); value != "" {
+		if val, err := strconv.Atoi(value); err == nil {
+			maxConcurrentReconciles = val
+		}
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&patchv1alpha1.Patch{}).
-		WithOptions(controller.Options{MaxConcurrentReconciles: 1}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: maxConcurrentReconciles}).
 		WithEventFilter(filterPatchPredicate()).
 		Complete(r)
-
 }

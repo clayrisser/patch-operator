@@ -3,7 +3,7 @@
 # File Created: 16-10-2021 13:14:09
 # Author: Clay Risser
 # -----
-# Last Modified: 26-01-2022 09:21:54
+# Last Modified: 25-06-2023 14:16:37
 # Modified By: Clay Risser
 # -----
 # BitSpur Inc (c) Copyright 2021
@@ -26,7 +26,7 @@ include $(MKPM)/gnu
 
 .PHONY: of-% build generate manifests install uninstall start
 build: of-build
-start: of-run
+dev: of-run
 generate: of-generate
 install: of-install
 manifests: generate of-manifests
@@ -34,8 +34,8 @@ uninstall: of-uninstall
 of-%:
 	@$(MAKE) -s -f ./operator-framework.mk $(subst of-,,$@)
 
-.PHONY: docker-%
-docker-%:
-	@$(MAKE) -s -C docker $(subst docker-,,$@)
+.PHONY: docker/%
+docker/%:
+	@$(MAKE) -s -C docker $(subst docker/,,$@)
 
 endif

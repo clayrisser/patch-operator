@@ -4,17 +4,17 @@ kind: ClusterRole
 metadata:
   name: patch-viewer-role
 rules:
-- apiGroups:
-  - patch.bitspur.com
-  resources:
-  - patches
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - patch.bitspur.com
-  resources:
-  - patches/status
-  verbs:
-  - get
+  - apiGroups:
+      - patch.rock8s.com
+    resources:
+      - patches
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - patch.rock8s.com
+    resources:
+      - patches/status
+    verbs:
+      - get

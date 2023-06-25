@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:40:48
  * Author: Clay Risser
  * -----
- * Last Modified: 19-10-2021 07:53:33
+ * Last Modified: 25-06-2023 14:02:25
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -31,8 +31,8 @@ import (
 	"os"
 	"time"
 
-	patchv1alpha1 "gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
-	"gitlab.com/bitspur/community/patch-operator/config"
+	patchv1alpha1 "gitlab.com/bitspur/rock8s/patch-operator/api/v1alpha1"
+	"gitlab.com/bitspur/rock8s/patch-operator/config"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )

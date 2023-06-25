@@ -30,7 +30,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	patchv1alpha1 "gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
+	patchv1alpha1 "gitlab.com/bitspur/rock8s/patch-operator/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

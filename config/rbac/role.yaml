@@ -7,7 +7,19 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - patch.bitspur.com
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - patch.rock8s.com
   resources:
   - patches
   verbs:
@@ -19,13 +31,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - patch.bitspur.com
+  - patch.rock8s.com
   resources:
   - patches/finalizers
   verbs:
   - update
 - apiGroups:
-  - patch.bitspur.com
+  - patch.rock8s.com
   resources:
   - patches/status
   verbs:

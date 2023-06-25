@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:19:14
  * Author: Clay Risser
  * -----
- * Last Modified: 17-10-2021 18:59:29
+ * Last Modified: 25-06-2023 14:14:12
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -39,8 +39,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	patchv1alpha1 "gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
-	"gitlab.com/bitspur/community/patch-operator/controllers"
+	patchv1alpha1 "gitlab.com/bitspur/rock8s/patch-operator/api/v1alpha1"
+	"gitlab.com/bitspur/rock8s/patch-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -55,6 +55,8 @@ func init() {
 	utilruntime.Must(patchv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
+
+//+kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;list;watch;create;update;patch;delete
 
 func main() {
 	var metricsAddr string
@@ -79,7 +81,7 @@ func main() {
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "611298a1.bitspur.com",
+		LeaderElectionID:       "611298a1.rock8s.com",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 22:37:55
  * Author: Clay Risser
  * -----
- * Last Modified: 18-10-2021 22:04:02
+ * Last Modified: 25-06-2023 14:02:25
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -34,9 +34,9 @@ import (
 	"sync"
 
 	"github.com/cespare/xxhash"
-	"gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
-	patchv1alpha1 "gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
-	"gitlab.com/bitspur/community/patch-operator/config"
+	"gitlab.com/bitspur/rock8s/patch-operator/api/v1alpha1"
+	patchv1alpha1 "gitlab.com/bitspur/rock8s/patch-operator/api/v1alpha1"
+	"gitlab.com/bitspur/rock8s/patch-operator/config"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

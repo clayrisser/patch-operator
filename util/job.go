@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 16:35:30
  * Author: Clay Risser
  * -----
- * Last Modified: 26-01-2022 09:18:10
+ * Last Modified: 25-06-2023 14:02:25
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -27,8 +27,8 @@ package util
 import (
 	"context"
 
-	patchv1alpha1 "gitlab.com/bitspur/community/patch-operator/api/v1alpha1"
-	"gitlab.com/bitspur/community/patch-operator/config"
+	patchv1alpha1 "gitlab.com/bitspur/rock8s/patch-operator/api/v1alpha1"
+	"gitlab.com/bitspur/rock8s/patch-operator/config"
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"

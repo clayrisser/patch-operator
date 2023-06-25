@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.1
   creationTimestamp: null
-  name: patches.patch.bitspur.com
+  name: patches.patch.rock8s.com
 spec:
-  group: patch.bitspur.com
+  group: patch.rock8s.com
   names:
     kind: Patch
     listKind: PatchList

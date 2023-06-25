@@ -15,4 +15,7 @@ bin
 testbin/*
 
 # app
-.mkpm/
+.mkpm/*
+**/.mkpm/*
+!/.mkpm/.cache.tar.gz
+!/.mkpm/.bootstrap.mk

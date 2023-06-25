@@ -1,13 +1,13 @@
 /**
  * File: /main.go
  * Project: config
- * File Created: 16-10-2021 22:44:20
+ * File Created: 25-06-2023 13:11:39
  * Author: Clay Risser
  * -----
- * Last Modified: 19-10-2021 07:52:02
+ * Last Modified: 25-06-2023 14:03:33
  * Modified By: Clay Risser
  * -----
- * BitSpur Inc (c) Copyright 2021
+ * BitSpur Inc (c) Copyright 2021 - 2023
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,4 +38,4 @@ const DefaultRequeueAfter = time.Duration(time.Second * 15)
 
 const PatchGroup = "patch"
 
-const Domain = "bitspur.com"
+const Domain = "rock8s.com"
