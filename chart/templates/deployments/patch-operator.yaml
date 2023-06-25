@@ -12,6 +12,7 @@ spec:
     matchLabels:
       app: {{ template "patch-operator.name" . }}
       release: {{ .Release.Name }}
+  replicas: {{ .Values.config.replicas }}
   strategy:
     type: {{ .Values.config.updateStrategy }}
   template:
