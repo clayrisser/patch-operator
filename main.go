@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:19:14
  * Author: Clay Risser
  * -----
- * Last Modified: 25-06-2023 14:14:12
+ * Last Modified: 27-06-2023 16:43:27
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -57,6 +57,7 @@ func init() {
 }
 
 //+kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 
 func main() {
 	var metricsAddr string
