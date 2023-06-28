@@ -4,7 +4,7 @@
  * File Created: 17-10-2021 16:35:30
  * Author: Clay Risser
  * -----
- * Last Modified: 25-06-2023 14:02:25
+ * Last Modified: 28-06-2023 05:29:15
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -66,6 +66,10 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 	}
 	jobs := j.clientset.BatchV1().Jobs(j.patch.GetNamespace())
 	var backoffLimit int32 = 0
+	serviceAccountName := j.patch.Spec.ServiceAccountName
+	if serviceAccountName == "" {
+		serviceAccountName = "default"
+	}
 	image := j.patch.Spec.Image
 	if image == "" {
 		image = "codejamninja/kube-commands:0.0.2"
@@ -89,7 +93,8 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 					},
 				},
 				Spec: v1.PodSpec{
-					RestartPolicy: v1.RestartPolicyNever,
+					ServiceAccountName: serviceAccountName,
+					RestartPolicy:      v1.RestartPolicyNever,
 					Containers: []v1.Container{
 						{
 							Name:            "kubectl",

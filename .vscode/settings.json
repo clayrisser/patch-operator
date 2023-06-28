@@ -10,6 +10,7 @@
     "certmanager",
     "cespare",
     "clientgoscheme",
+    "codejamninja",
     "controllerutil",
     "crdkustomizecainjectionpatch",
     "crdkustomizeresource",

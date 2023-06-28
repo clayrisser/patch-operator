@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 25-06-2023 14:02:25
+ * Last Modified: 28-06-2023 05:29:43
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -45,11 +45,14 @@ type PatchSpec struct {
 	// a list of patches to be applied in order
 	Patches []PatchSpecPatch `json:"patches,omitempty"`
 
+	// change epoch to force recalibration
+	Epoch string `json:"epoch,omitempty"`
+
 	// image used in the job
 	Image string `json:"image,omitempty"`
 
-	// change epoch to force recalibration
-	Epoch string `json:"epoch,omitempty"`
+	// service account name used in the job
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
 // PatchStatus defines the observed state of Patch
