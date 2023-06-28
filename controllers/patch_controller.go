@@ -4,7 +4,7 @@
  * File Created: 16-10-2021 12:21:20
  * Author: Clay Risser
  * -----
- * Last Modified: 25-06-2023 14:03:21
+ * Last Modified: 28-06-2023 05:19:14
  * Modified By: Clay Risser
  * -----
  * BitSpur Inc (c) Copyright 2021
@@ -48,9 +48,10 @@ type PatchReconciler struct {
 	client.Client
 }
 
+//+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=patch.rock8s.com,resources=patches,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=patch.rock8s.com,resources=patches/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=patch.rock8s.com,resources=patches/finalizers,verbs=update
+//+kubebuilder:rbac:groups=patch.rock8s.com,resources=patches/status,verbs=get;update;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
