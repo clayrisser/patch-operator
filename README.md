@@ -82,7 +82,7 @@ You can learn more about this on [ArtifactHub](https://artifacthub.io/packages/h
 Here's an example manifest file that creates a `Patch` resource.
 
 ```yaml
-apiVersion: patch.risserlabs.com/v1alpha1
+apiVersion: patch.rock8s.com/v1alpha1
 kind: Patch
 metadata:
   name: example-patch
@@ -134,11 +134,10 @@ Here are the properties of a Patch resource:
 
 - `patches`
   An array of patches to be applied. Each patch is defined by the following properties:
-
-      * `id`: an optional string value representing the ID of the patch.
-      * `patch`: a string value representing the patch to be applied.
-      * `skipIf`: an optional array of criteria to skip the patch if met.
-      * `target`: a set of properties that define the target resource to patch.
-      * `type`: a string value representing the type of patch to apply (`json`, `merge`, `strategic` or `script`). You can read more about the different patch types [HERE](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#use-a-json-merge-patch-to-update-a-deployment).
-      * `waitForResource`: a boolean value representing whether to wait for the resource to exist before applying the patch.
-      * `waitForTimeout`: an integer value representing the time in milliseconds to wait before applying the patch.
+  - `id`: an optional string value representing the ID of the patch.
+  - `patch`: a string value representing the patch to be applied.
+  - `skipIf`: an optional array of criteria to skip the patch if met.
+  - `target`: a set of properties that define the target resource to patch.
+  - `type`: a string value representing the type of patch to apply (`json`, `merge`, `strategic` or `script`). You can read more about the different patch types [HERE](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#use-a-json-merge-patch-to-update-a-deployment).
+  - `waitForResource`: a boolean value representing whether to wait for the resource to exist before applying the patch.
+  - `waitForTimeout`: an integer value representing the time in milliseconds to wait before applying the patch.
