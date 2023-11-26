@@ -130,7 +130,7 @@ Here are the properties of a Patch resource:
 
 - `image`
   A string value representing the name and tag of the image to be used in the job.
-  The default image used is `registry.gitlab.com/risserlabs/community/images/kube-commands:0.0.1`.
+  The default image used is `registry.gitlab.com/bitspur/rock8s/images/kube-commands:3.18.0`.
 
 - `patches`
   An array of patches to be applied. Each patch is defined by the following properties:
