@@ -1,13 +1,10 @@
 /**
  * File: /patch_types.go
  * Project: v1alpha1
- * File Created: 16-10-2021 12:21:20
+ * File Created: 26-11-2023 06:42:14
  * Author: Clay Risser
  * -----
- * Last Modified: 28-06-2023 05:29:43
- * Modified By: Clay Risser
- * -----
- * BitSpur Inc (c) Copyright 2021
+ * BitSpur (c) Copyright 2021 - 2023
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

@@ -1,5 +1,5 @@
-# File: /Makefile
-# Project: chart
+# File: /Mkpmfile
+# Project: patch-operator
 # File Created: 26-11-2023 06:42:14
 # Author: Clay Risser
 # -----
@@ -17,15 +17,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include ../../mkpm.mk
-ifneq (,$(MKPM_READY))
+include $(MKPM)/mkpm
 include $(MKPM)/gnu
 
-export PATCHES :=
+.PHONY: of-% build generate manifests install uninstall start
+build: of-build
+start: of-run
+generate: of-generate
+install: of-install
+manifests: generate of-manifests
+uninstall: of-uninstall
+of-%:
+	@$(MAKE) -s -f ./operator-framework.mk $(subst of-,,$@)
 
-include $(MKPM)/patch
-
-.PHONY: prepack
-prepack: patch-apply
-
-endif
+.PHONY: docker/%
+docker/%:
+	@$(MAKE) -s -C docker $(subst docker/,,$@)

@@ -1,13 +1,10 @@
 /**
  * File: /main.go
  * Project: config
- * File Created: 25-06-2023 13:11:39
+ * File Created: 26-11-2023 06:42:14
  * Author: Clay Risser
  * -----
- * Last Modified: 25-06-2023 14:03:33
- * Modified By: Clay Risser
- * -----
- * BitSpur Inc (c) Copyright 2021 - 2023
+ * BitSpur (c) Copyright 2021 - 2023
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

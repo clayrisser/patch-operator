@@ -1,12 +1,9 @@
 # File: /Makefile
 # Project: docker
-# File Created: 19-10-2021 07:37:12
+# File Created: 26-11-2023 06:42:14
 # Author: Clay Risser
 # -----
-# Last Modified: 25-06-2023 14:12:49
-# Modified By: Clay Risser
-# -----
-# BitSpur Inc (c) Copyright 2021
+# BitSpur (c) Copyright 2021 - 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,8 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include ../mkpm.mk
-ifneq (,$(MKPM_READY))
+include $(MKPM)/mkpm
 include $(MKPM)/gnu
 
 export DOCKER_COMPOSE := docker-compose
@@ -31,5 +27,3 @@ export REGISTRY := registry.gitlab.com
 export VERSION := 0.1.0
 
 include $(MKPM)/docker
-
-endif

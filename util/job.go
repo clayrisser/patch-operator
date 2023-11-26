@@ -1,13 +1,10 @@
 /**
  * File: /job.go
  * Project: util
- * File Created: 17-10-2021 16:35:30
+ * File Created: 26-11-2023 06:42:14
  * Author: Clay Risser
  * -----
- * Last Modified: 28-06-2023 05:29:15
- * Modified By: Clay Risser
- * -----
- * BitSpur Inc (c) Copyright 2021
+ * BitSpur (c) Copyright 2021 - 2023
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,13 +69,14 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 	}
 	image := j.patch.Spec.Image
 	if image == "" {
-		image = "codejamninja/kube-commands:0.0.2"
+		image = "registry.gitlab.com/bitspur/rock8s/images/kube-commands:3.18.0"
 	}
 	labels := j.patch.Labels
 	if labels == nil {
 		labels = map[string]string{}
 	}
 	labels[PatchLabel] = j.patch.GetName()
+	automountServiceAccountToken := true
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      j.patch.GetName() + "-patch",
@@ -91,10 +89,14 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 					Labels: map[string]string{
 						PatchLabel: j.patch.GetName(),
 					},
+					Annotations: map[string]string{
+						"sidecar.istio.io/inject": "false",
+					},
 				},
 				Spec: v1.PodSpec{
-					ServiceAccountName: serviceAccountName,
-					RestartPolicy:      v1.RestartPolicyNever,
+					AutomountServiceAccountToken: &automountServiceAccountToken,
+					RestartPolicy:                v1.RestartPolicyNever,
+					ServiceAccountName:           serviceAccountName,
 					Containers: []v1.Container{
 						{
 							Name:            "kubectl",
@@ -120,7 +122,7 @@ func (j *JobUtil) Create(command string, env *[]v1.EnvVar) (*batchv1.Job, error)
 
 func (j *JobUtil) Get() (*batchv1.Job, error) {
 	jobs := j.clientset.BatchV1().Jobs(j.patch.GetNamespace())
-	return jobs.Get(*j.ctx, j.patch.Name, metav1.GetOptions{})
+	return jobs.Get(*j.ctx, j.patch.GetName()+"-patch", metav1.GetOptions{})
 }
 
 func (j *JobUtil) Owned() (bool, error) {

@@ -1,12 +1,9 @@
 # File: /Makefile
 # Project: patch-operator
-# File Created: 16-10-2021 13:14:09
+# File Created: 26-11-2023 06:42:14
 # Author: Clay Risser
 # -----
-# Last Modified: 25-06-2023 14:16:37
-# Modified By: Clay Risser
-# -----
-# BitSpur Inc (c) Copyright 2021
+# BitSpur (c) Copyright 2021 - 2023
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,22 +17,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include mkpm.mk
-ifneq (,$(MKPM_READY))
-include $(MKPM)/gnu
+.ONESHELL:
+.POSIX:
+.SILENT:
 
-.PHONY: of-% build generate manifests install uninstall start
-build: of-build
-dev: of-run
-generate: of-generate
-install: of-install
-manifests: generate of-manifests
-uninstall: of-uninstall
-of-%:
-	@$(MAKE) -s -f ./operator-framework.mk $(subst of-,,$@)
-
-.PHONY: docker/%
-docker/%:
-	@$(MAKE) -s -C docker $(subst docker/,,$@)
-
-endif
+MKPM := ./mkpm
+.PHONY: %
+%:
+	@$(MKPM) "$@" $(ARGS)

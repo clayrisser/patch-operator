@@ -1,13 +1,10 @@
 /**
  * File: /script.go
  * Project: util
- * File Created: 17-10-2021 19:01:54
+ * File Created: 26-11-2023 06:42:14
  * Author: Clay Risser
  * -----
- * Last Modified: 25-06-2023 14:02:25
- * Modified By: Clay Risser
- * -----
- * BitSpur Inc (c) Copyright 2021
+ * BitSpur (c) Copyright 2021 - 2023
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,7 +170,7 @@ fi`, patchItem.Patch, patchId)
 			patchType = " --type " + string(patchItem.Type)
 		}
 		commandPreview += fmt.Sprintf(`echo 'if [ "$SKIP_PATCH" != "true" ]; then'
-		echo '    kubectl cat <<EOF | patch%s --patch-file /tmp/patches/%s.yaml'
+		echo '    cat <<EOF | kubectl patch%s --patch-file /tmp/patches/%s.yaml'
 cat <<EOF
 %s
 EOF

@@ -1,13 +1,10 @@
 /**
  * File: /helpers.go
  * Project: util
- * File Created: 16-10-2021 22:40:48
+ * File Created: 26-11-2023 06:42:14
  * Author: Clay Risser
  * -----
- * Last Modified: 25-06-2023 14:02:25
- * Modified By: Clay Risser
- * -----
- * BitSpur Inc (c) Copyright 2021
+ * BitSpur (c) Copyright 2021 - 2023
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
