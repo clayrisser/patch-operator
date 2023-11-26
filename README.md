@@ -8,9 +8,9 @@ and much more.
 
 ## Migrate to Kyverno
 
-The example Kyverno Policy can achieve the same effect as a Patch.
+The example _Kyverno Policy_ can achieve the same effect as a _Patch_.
 
-_Kyverno policy_
+_Kyverno Policy_
 
 ```yaml
 apiVersion: kyverno.io/v1
